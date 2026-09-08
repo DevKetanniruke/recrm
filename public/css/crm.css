@@ -1,0 +1,118 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap');
+
+:root {
+    --crm-sidebar-bg: #0f172a;
+    --crm-sidebar-hover: #1e293b;
+    --crm-sidebar-active: #3b82f6;
+    --crm-bg: #f8fafc;
+    --crm-card-bg: #ffffff;
+    --crm-text-primary: #0f172a;
+    --crm-text-secondary: #64748b;
+    --crm-primary: #3b82f6;
+    --crm-accent: #10b981;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--crm-bg);
+    color: var(--crm-text-primary);
+    overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6, .brand-font {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+}
+
+.sidebar {
+    width: 260px;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: var(--crm-sidebar-bg);
+    color: #94a3b8;
+    z-index: 1000;
+    transition: all 0.3s ease;
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.sidebar .nav-link {
+    color: #94a3b8;
+    padding: 0.75rem 1.25rem;
+    font-weight: 500;
+    border-radius: 0.5rem;
+    margin: 0.2rem 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    transition: all 0.2s ease;
+}
+
+.sidebar .nav-link:hover {
+    color: #ffffff;
+    background-color: var(--crm-sidebar-hover);
+}
+
+.sidebar .nav-link.active {
+    color: #ffffff;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.main-content {
+    margin-left: 260px;
+    padding: 2rem;
+    min-height: 100vh;
+}
+
+.top-navbar {
+    background: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 0.85rem 2rem;
+    margin-left: 260px;
+}
+
+.stat-card {
+    background: #ffffff;
+    border-radius: 1rem;
+    border: 1px solid #e2e8f0;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+}
+
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+/* Status Badges */
+.badge-available { background-color: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+.badge-onhold { background-color: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+.badge-booked { background-color: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe; }
+.badge-sold { background-color: #ffe4e6; color: #9f1239; border: 1px solid #fecdd3; }
+.badge-blocked { background-color: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
+
+.inventory-cell {
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    text-align: center;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.inventory-cell:hover {
+    transform: scale(1.04);
+}
