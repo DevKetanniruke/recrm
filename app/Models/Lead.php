@@ -182,4 +182,9 @@ class Lead extends Model
     {
         return $this->hasMany(Lead::class, 'merged_into_lead_id');
     }
+
+    public function offers(): HasMany
+    {
+        return $this->hasMany(Offer::class)->orderBy('created_at', 'desc');
+    }
 }

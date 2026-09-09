@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Booking;
 use App\Models\Lead;
 use App\Models\LeadFollowup;
+use App\Models\Offer;
 use App\Models\Payment;
 use App\Models\Project;
 use App\Models\SiteVisit;
@@ -34,6 +35,11 @@ class AnalyticsService
         $siteVisitsScheduled = SiteVisit::where('company_id', $companyId)->where('status', 'Scheduled')->count();
         $siteVisitsCompleted = SiteVisit::where('company_id', $companyId)->where('status', 'Completed')->count();
 
+        // V0.4 Offer & Negotiation KPIs
+        $activeOffersCount = Offer::where('company_id', $companyId)->whereIn('status', ['Draft', 'Pending Manager Approval', 'Pending Admin Approval', 'Approved', 'Countered'])->count();
+        $pendingOffersCount = Offer::where('company_id', $companyId)->whereIn('status', ['Pending Manager Approval', 'Pending Admin Approval'])->count();
+        $approvedOffersCount = Offer::where('company_id', $companyId)->where('status', 'Approved')->count();
+
         // Won & Lost Deals
         $wonDeals = (clone $baseLeads)->where('status', 'Won')->count();
         $lostDeals = (clone $baseLeads)->where('status', 'Lost')->count();
@@ -47,7 +53,7 @@ class AnalyticsService
         // Unit Inventory Breakdown
         $unitStats = [
             'Available' => Unit::where('company_id', $companyId)->where('status', 'Available')->count(),
-            'On Hold' => Unit::where('company_id', $companyId)->where('status', 'On Hold')->count(),
+            'On Hold' => Unit::where('company_id', $companyId)->whereIn('status', ['Hold', 'On Hold'])->count(),
             'Booked' => Unit::where('company_id', $companyId)->where('status', 'Booked')->count(),
             'Sold' => Unit::where('company_id', $companyId)->where('status', 'Sold')->count(),
             'Blocked' => Unit::where('company_id', $companyId)->where('status', 'Blocked')->count(),
@@ -98,6 +104,9 @@ class AnalyticsService
             'overdueFollowups' => $overdueFollowups,
             'siteVisitsScheduled' => $siteVisitsScheduled,
             'siteVisitsCompleted' => $siteVisitsCompleted,
+            'activeOffersCount' => $activeOffersCount,
+            'pendingOffersCount' => $pendingOffersCount,
+            'approvedOffersCount' => $approvedOffersCount,
             'wonDeals' => $wonDeals,
             'lostDeals' => $lostDeals,
             'totalBookings' => $totalBookings,

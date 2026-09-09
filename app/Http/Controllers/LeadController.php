@@ -12,11 +12,14 @@ use App\Models\Project;
 use App\Models\Team;
 use App\Models\User;
 use App\Services\LeadService;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
 
 class LeadController extends Controller
 {
+    use AuthorizesRequests;
+
     protected LeadService $leadService;
 
     public function __construct(LeadService $leadService)

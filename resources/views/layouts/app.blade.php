@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Admin Portal') - Real Estate CRM V0.3</title>
+    <title>@yield('title', 'Admin Portal') - Real Estate CRM V0.4</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
@@ -25,7 +25,7 @@
                 </div>
                 <div>
                     <h6 class="mb-0 text-white brand-font fw-bold">PropFlow CRM</h6>
-                    <small class="text-secondary" style="font-size:0.75rem;">v0.3 Lead Management</small>
+                    <small class="text-secondary" style="font-size:0.75rem;">v0.4 Sales & Negotiation</small>
                 </div>
             </div>
             
@@ -34,10 +34,19 @@
                     <i class="bi bi-grid-1x2-fill"></i> Dashboard
                 </a>
 
-                <div class="px-3 my-2 text-uppercase text-muted fw-bold" style="font-size: 0.65rem; letter-spacing: 1px;">Lead Management</div>
+                <div class="px-3 my-2 text-uppercase text-muted fw-bold" style="font-size: 0.65rem; letter-spacing: 1px;">Sales & Pipeline</div>
                 @if(auth()->user()->hasPermissionTo('leads.view'))
                     <a class="nav-link {{ request()->routeIs('leads.index') || request()->routeIs('leads.show') || request()->routeIs('leads.create') || request()->routeIs('leads.edit') ? 'active' : '' }}" href="{{ route('leads.index') }}">
                         <i class="bi bi-person-lines-fill"></i> Lead Pipeline
+                    </a>
+                    <a class="nav-link {{ request()->routeIs('site-visits.*') ? 'active' : '' }}" href="{{ route('site-visits.index') }}">
+                        <i class="bi bi-geo-alt-fill"></i> Site Visits Logistics
+                    </a>
+                    <a class="nav-link {{ request()->routeIs('offers.*') ? 'active' : '' }}" href="{{ route('offers.index') }}">
+                        <i class="bi bi-tag-fill"></i> Offers & Negotiation
+                    </a>
+                    <a class="nav-link {{ request()->routeIs('calendar.*') ? 'active' : '' }}" href="{{ route('calendar.index') }}">
+                        <i class="bi bi-calendar3"></i> Unified Sales Calendar
                     </a>
                     <a class="nav-link {{ request()->routeIs('followups.*') ? 'active' : '' }}" href="{{ route('followups.index') }}">
                         <i class="bi bi-calendar-check-fill"></i> Follow-ups Schedule
@@ -95,7 +104,7 @@
                     <i class="bi bi-gear-fill"></i> System Settings
                 </a>
 
-                <div class="px-3 my-2 text-uppercase text-muted fw-bold" style="font-size: 0.65rem; letter-spacing: 1px;">Sales & Finance</div>
+                <div class="px-3 my-2 text-uppercase text-muted fw-bold" style="font-size: 0.65rem; letter-spacing: 1px;">Finance & Closures</div>
                 @if(auth()->user()->hasPermissionTo('bookings.view'))
                     <a class="nav-link {{ request()->routeIs('bookings.*') ? 'active' : '' }}" href="{{ route('bookings.index') }}">
                         <i class="bi bi-file-earmark-check-fill"></i> Unit Bookings

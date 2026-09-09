@@ -13,9 +13,13 @@ use App\Models\LeadAssignmentHistory;
 use App\Models\LeadFollowup;
 use App\Models\LeadSource;
 use App\Models\LeadStatus;
+use App\Models\Offer;
+use App\Models\OfferNegotiationRound;
 use App\Models\Payment;
 use App\Models\PaymentSchedule;
+use App\Models\Permission;
 use App\Models\Project;
+use App\Models\Role;
 use App\Models\SiteVisit;
 use App\Models\Team;
 use App\Models\Unit;
@@ -45,6 +49,81 @@ class DatabaseSeeder extends Seeder
             'country' => 'USA',
             'tax_id_rera' => 'RERA-REG-2026-99182',
             'currency_code' => 'USD',
+        ]);
+
+        // Seed Permissions Catalog
+        $permissionsList = [
+            ['name' => 'View Dashboard', 'slug' => 'dashboard.view', 'module' => 'general'],
+            ['name' => 'View Users', 'slug' => 'users.view', 'module' => 'users'],
+            ['name' => 'Create Users', 'slug' => 'users.create', 'module' => 'users'],
+            ['name' => 'Edit Users', 'slug' => 'users.edit', 'module' => 'users'],
+            ['name' => 'Delete Users', 'slug' => 'users.delete', 'module' => 'users'],
+            ['name' => 'View Projects', 'slug' => 'projects.view', 'module' => 'projects'],
+            ['name' => 'Create Projects', 'slug' => 'projects.create', 'module' => 'projects'],
+            ['name' => 'View Inventory', 'slug' => 'inventory.view', 'module' => 'inventory'],
+            ['name' => 'View Leads', 'slug' => 'leads.view', 'module' => 'leads'],
+            ['name' => 'Create Leads', 'slug' => 'leads.create', 'module' => 'leads'],
+            ['name' => 'Edit Leads', 'slug' => 'leads.edit', 'module' => 'leads'],
+            ['name' => 'Delete Leads', 'slug' => 'leads.delete', 'module' => 'leads'],
+            ['name' => 'Assign Leads', 'slug' => 'leads.assign', 'module' => 'leads'],
+            ['name' => 'View Site Visits', 'slug' => 'site_visits.view', 'module' => 'site_visits'],
+            ['name' => 'View Sales Calendar', 'slug' => 'calendar.view', 'module' => 'calendar'],
+            ['name' => 'View Offers', 'slug' => 'offers.view', 'module' => 'offers'],
+            ['name' => 'Create Offers', 'slug' => 'offers.create', 'module' => 'offers'],
+            ['name' => 'Approve Offers', 'slug' => 'offers.approve', 'module' => 'offers'],
+            ['name' => 'View Bookings', 'slug' => 'bookings.view', 'module' => 'bookings'],
+            ['name' => 'Create Bookings', 'slug' => 'bookings.create', 'module' => 'bookings'],
+            ['name' => 'View Payments', 'slug' => 'payments.view', 'module' => 'payments'],
+            ['name' => 'Record Payments', 'slug' => 'payments.create', 'module' => 'payments'],
+        ];
+
+        $permModels = [];
+        foreach ($permissionsList as $pData) {
+            $permModels[$pData['slug']] = Permission::firstOrCreate(['slug' => $pData['slug']], $pData);
+        }
+
+        // Seed Default Roles & Attach Permissions
+        $adminRole = Role::create(['company_id' => $company->id, 'name' => 'Administrator', 'slug' => 'admin', 'description' => 'Full administrative access']);
+        $adminRole->permissions()->sync(array_column($permModels, 'id'));
+
+        $managerRole = Role::create(['company_id' => $company->id, 'name' => 'Sales Manager', 'slug' => 'sales_manager', 'description' => 'Oversees sales team and team leads']);
+        $managerRole->permissions()->sync([
+            $permModels['dashboard.view']->id,
+            $permModels['projects.view']->id,
+            $permModels['inventory.view']->id,
+            $permModels['leads.view']->id,
+            $permModels['leads.create']->id,
+            $permModels['leads.edit']->id,
+            $permModels['leads.assign']->id,
+            $permModels['site_visits.view']->id,
+            $permModels['calendar.view']->id,
+            $permModels['offers.view']->id,
+            $permModels['offers.create']->id,
+            $permModels['offers.approve']->id,
+            $permModels['bookings.view']->id,
+        ]);
+
+        $agentRole = Role::create(['company_id' => $company->id, 'name' => 'Sales Executive', 'slug' => 'sales_agent', 'description' => 'Handles assigned buyer leads']);
+        $agentRole->permissions()->sync([
+            $permModels['dashboard.view']->id,
+            $permModels['projects.view']->id,
+            $permModels['inventory.view']->id,
+            $permModels['leads.view']->id,
+            $permModels['leads.create']->id,
+            $permModels['leads.edit']->id,
+            $permModels['site_visits.view']->id,
+            $permModels['calendar.view']->id,
+            $permModels['offers.view']->id,
+            $permModels['offers.create']->id,
+            $permModels['bookings.view']->id,
+        ]);
+
+        $accountantRole = Role::create(['company_id' => $company->id, 'name' => 'Accountant', 'slug' => 'accountant', 'description' => 'Handles payment receipts and accounts']);
+        $accountantRole->permissions()->sync([
+            $permModels['dashboard.view']->id,
+            $permModels['bookings.view']->id,
+            $permModels['payments.view']->id,
+            $permModels['payments.create']->id,
         ]);
 
         // 2. Create Configurable Lead Sources
@@ -99,6 +178,7 @@ class DatabaseSeeder extends Seeder
             'mobile' => '+1 (555) 019-0001',
             'status' => 'Active',
         ]);
+        $admin->roles()->attach($adminRole->id);
 
         $manager = User::create([
             'company_id' => $company->id,
@@ -109,6 +189,7 @@ class DatabaseSeeder extends Seeder
             'mobile' => '+1 (555) 019-0004',
             'status' => 'Active',
         ]);
+        $manager->roles()->attach($managerRole->id);
 
         $agent1 = User::create([
             'company_id' => $company->id,
@@ -119,6 +200,7 @@ class DatabaseSeeder extends Seeder
             'mobile' => '+1 (555) 019-0002',
             'status' => 'Active',
         ]);
+        $agent1->roles()->attach($agentRole->id);
 
         $accountant = User::create([
             'company_id' => $company->id,
@@ -129,6 +211,7 @@ class DatabaseSeeder extends Seeder
             'mobile' => '+1 (555) 019-0003',
             'status' => 'Active',
         ]);
+        $accountant->roles()->attach($accountantRole->id);
 
         // 5. Create Team & Members
         $team = Team::create([
@@ -290,7 +373,7 @@ class DatabaseSeeder extends Seeder
             }
         }
 
-        // 9. Seed V0.3 Leads, Activities, Followups, Assignment Histories
+        // 9. Seed V0.3 Leads & Activities
         $lead1 = Lead::create([
             'company_id' => $company->id,
             'lead_number' => 'LD-2026-00001',
@@ -372,16 +455,59 @@ class DatabaseSeeder extends Seeder
             'status' => 'Pending',
         ]);
 
+        // 10. Seed V0.4 Site Visits with Cab Dispatch
         SiteVisit::create([
             'company_id' => $company->id,
+            'visit_number' => 'SV-2026-00001',
             'lead_id' => $lead2->id,
             'project_id' => $project1->id,
             'assigned_to' => $agent1->id,
+            'transportation_type' => 'Company Cab',
+            'driver_name' => 'Carlos Driver',
+            'driver_phone' => '+1 (555) 998-1122',
+            'pickup_location' => '742 Evergreen Terrace, Austin TX',
+            'pickup_time' => now()->addDay()->setHour(10)->setMinute(30),
             'visit_date' => now()->addDay()->setHour(11)->setMinute(0),
-            'status' => 'Scheduled',
+            'status' => 'Driver Assigned',
         ]);
 
-        // 10. Create Customer & Booking
+        // 11. Seed V0.4 Formal Offers & Negotiations
+        $targetUnit = $unitsCreated[201];
+        $targetUnit->updateInventoryStatus('Hold', 'Locked for formal offer proposal');
+
+        $offer1 = Offer::create([
+            'company_id' => $company->id,
+            'offer_number' => 'OFF-2026-00001',
+            'lead_id' => $lead2->id,
+            'unit_id' => $targetUnit->id,
+            'created_by' => $agent1->id,
+            'approved_by' => null,
+            'original_unit_price' => $targetUnit->total_price,
+            'offered_price' => $targetUnit->total_price * 0.92, // 8% discount
+            'discount_amount' => $targetUnit->total_price * 0.08,
+            'discount_percentage' => 8.00,
+            'token_amount_offered' => 200000.00,
+            'payment_plan_type' => 'Construction Linked',
+            'valid_until' => now()->addDays(7),
+            'unit_lock_expires_at' => now()->addHours(72),
+            'status' => 'Pending Manager Approval',
+            'terms_conditions' => 'Includes free covered parking slot and modular kitchen voucher.',
+        ]);
+
+        OfferNegotiationRound::create([
+            'company_id' => $company->id,
+            'offer_id' => $offer1->id,
+            'round_number' => 1,
+            'offered_by' => 'Buyer',
+            'proposed_by_user_id' => $agent1->id,
+            'proposed_price' => $targetUnit->total_price * 0.92,
+            'discount_amount' => $targetUnit->total_price * 0.08,
+            'requested_token_amount' => 200000.00,
+            'payment_terms' => 'Construction Linked',
+            'comments' => 'Buyer requested 8% discount for early booking.',
+        ]);
+
+        // 12. Create Customer & Booking
         $customer1 = Customer::create([
             'company_id' => $company->id,
             'lead_id' => $lead1->id,

@@ -4,6 +4,7 @@ use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\BuildingController;
+use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
@@ -11,6 +12,7 @@ use App\Http\Controllers\InventoryGridController;
 use App\Http\Controllers\LeadConfigController;
 use App\Http\Controllers\LeadController;
 use App\Http\Controllers\LeadFollowupController;
+use App\Http\Controllers\OfferController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
@@ -29,7 +31,7 @@ Route::post('logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('forgot-password', [AuthController::class, 'showForgotPassword'])->name('password.request');
 Route::post('forgot-password', [AuthController::class, 'sendResetLinkEmail'])->name('password.email');
 
-// Authenticated CRM Core & V0.2/V0.3 Routes
+// Authenticated CRM Core & V0.2/V0.3/V0.4 Routes
 Route::middleware(['auth'])->group(function () {
     Route::get('/', function () {
         return redirect()->route('dashboard');
@@ -131,9 +133,31 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('leads', LeadController::class);
         Route::post('/leads/{lead}/activities', [LeadController::class, 'addActivity'])->name('leads.add-activity');
         Route::post('/leads/{lead}/status', [LeadController::class, 'updateStatus'])->name('leads.update-status');
+        
+        // V0.4 Site Visit Logistics Routes
         Route::get('/site-visits', [SiteVisitController::class, 'index'])->name('site-visits.index');
         Route::post('/site-visits', [SiteVisitController::class, 'store'])->name('site-visits.store');
+        Route::get('/site-visits/{siteVisit}', [SiteVisitController::class, 'show'])->name('site-visits.show');
+        Route::post('/site-visits/{siteVisit}/dispatch', [SiteVisitController::class, 'dispatchCab'])->name('site-visits.dispatch');
+        Route::post('/site-visits/{siteVisit}/check-in', [SiteVisitController::class, 'checkIn'])->name('site-visits.check-in');
+        Route::post('/site-visits/{siteVisit}/check-out', [SiteVisitController::class, 'checkOut'])->name('site-visits.check-out');
         Route::post('/site-visits/{siteVisit}/status', [SiteVisitController::class, 'updateStatus'])->name('site-visits.update-status');
+
+        // V0.4 Unified Sales Calendar
+        Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar.index');
+        Route::get('/calendar/events', [CalendarController::class, 'eventsApi'])->name('calendar.events');
+
+        // V0.4 Offers & Multi-Round Negotiation Engine Routes
+        Route::get('/offers', [OfferController::class, 'index'])->name('offers.index');
+        Route::get('/offers-create', [OfferController::class, 'create'])->name('offers.create');
+        Route::post('/offers', [OfferController::class, 'store'])->name('offers.store');
+        Route::get('/offers/{offer}', [OfferController::class, 'show'])->name('offers.show');
+        Route::post('/offers/{offer}/counter', [OfferController::class, 'submitCounterOffer'])->name('offers.counter');
+        Route::post('/offers/{offer}/approve', [OfferController::class, 'approve'])->name('offers.approve');
+        Route::post('/offers/{offer}/reject', [OfferController::class, 'reject'])->name('offers.reject');
+        Route::get('/offers/{offer}/pdf', [OfferController::class, 'downloadPdf'])->name('offers.pdf');
+        Route::post('/offers/{offer}/convert-booking', [OfferController::class, 'convertToBooking'])->name('offers.convert-booking');
+
         Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');
         Route::get('/customers/{customer}', [CustomerController::class, 'show'])->name('customers.show');
         Route::post('/customers/{customer}/kyc', [CustomerController::class, 'updateKyc'])->name('customers.update-kyc');

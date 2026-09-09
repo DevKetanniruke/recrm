@@ -78,6 +78,26 @@ class User extends Authenticatable
             return true;
         }
 
+        // All active users in the CRM system have access to dashboard
+        if ($permissionSlug === 'dashboard.view') {
+            return true;
+        }
+
+        // Role-based fallbacks for standard CRM roles
+        $rolePermissionsMap = [
+            'sales_manager' => ['dashboard.view', 'leads.view', 'leads.create', 'leads.edit', 'leads.assign', 'projects.view', 'inventory.view', 'bookings.view'],
+            'crm_manager' => ['dashboard.view', 'leads.view', 'leads.create', 'leads.edit', 'leads.assign', 'projects.view', 'inventory.view', 'bookings.view'],
+            'manager' => ['dashboard.view', 'leads.view', 'leads.create', 'leads.edit', 'leads.assign', 'projects.view', 'inventory.view', 'bookings.view'],
+            'sales_agent' => ['dashboard.view', 'leads.view', 'leads.create', 'leads.edit', 'projects.view', 'inventory.view', 'bookings.view'],
+            'sales_executive' => ['dashboard.view', 'leads.view', 'leads.create', 'leads.edit', 'projects.view', 'inventory.view', 'bookings.view'],
+            'telecaller' => ['dashboard.view', 'leads.view', 'leads.create', 'leads.edit'],
+            'accountant' => ['dashboard.view', 'payments.view', 'payments.create', 'bookings.view'],
+        ];
+
+        if (isset($rolePermissionsMap[$this->role]) && in_array($permissionSlug, $rolePermissionsMap[$this->role])) {
+            return true;
+        }
+
         foreach ($this->roles as $role) {
             if ($role->permissions()->where('slug', $permissionSlug)->exists()) {
                 return true;

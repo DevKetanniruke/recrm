@@ -6,11 +6,13 @@ use App\Traits\Auditable;
 use App\Traits\BelongsToCompany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Unit extends Model
 {
-    use HasFactory, BelongsToCompany, SoftDeletes, Auditable;
+    use HasFactory, BelongsToCompany, Auditable, SoftDeletes;
 
     protected $fillable = [
         'company_id',
@@ -30,10 +32,8 @@ class Unit extends Model
         'bathrooms',
         'facing',
         'parking',
-        'RERA_unit_number',
         'possession_status',
         'inventory_status',
-        // Backward compatibility
         'unit_type',
         'carpet_area_sqft',
         'super_builtup_area_sqft',
@@ -42,64 +42,67 @@ class Unit extends Model
         'status',
     ];
 
-    protected $casts = [
-        'carpet_area' => 'decimal:2',
-        'built_up_area' => 'decimal:2',
-        'super_built_up_area' => 'decimal:2',
-        'balcony_area' => 'decimal:2',
-        'terrace_area' => 'decimal:2',
-        'total_price' => 'decimal:2',
-    ];
-
-    public static function boot()
+    protected static function boot()
     {
         parent::boot();
 
-        static::creating(function ($model) {
-            if ($model->floor_id && (! $model->wing_id || ! $model->building_id || ! $model->project_id)) {
-                $floor = Floor::with('wing.building')->find($model->floor_id);
+        static::creating(function ($unit) {
+            if ($unit->floor_id) {
+                $floor = Floor::with(['wing.building'])->find($unit->floor_id);
                 if ($floor && $floor->wing) {
-                    $model->wing_id = $model->wing_id ?? $floor->wing_id;
-                    $model->building_id = $model->building_id ?? $floor->wing->building_id;
-                    $model->project_id = $model->project_id ?? $floor->wing->building->project_id;
+                    $unit->wing_id = $unit->wing_id ?? $floor->wing_id;
+                    $unit->building_id = $unit->building_id ?? $floor->wing->building_id;
+                    $unit->project_id = $unit->project_id ?? $floor->wing->building->project_id;
                 }
+            }
+
+            if (empty($unit->inventory_status)) {
+                $unit->inventory_status = $unit->status ?? 'Available';
+            }
+            if (empty($unit->status)) {
+                $unit->status = $unit->inventory_status ?? 'Available';
             }
         });
     }
 
-    public function project()
+    public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
     }
 
-    public function building()
+    public function building(): BelongsTo
     {
         return $this->belongsTo(Building::class);
     }
 
-    public function wing()
+    public function wing(): BelongsTo
     {
         return $this->belongsTo(Wing::class);
     }
 
-    public function floor()
+    public function floor(): BelongsTo
     {
         return $this->belongsTo(Floor::class);
     }
 
-    public function unitType()
+    public function unitType(): BelongsTo
     {
         return $this->belongsTo(UnitType::class);
     }
 
-    public function pricing()
+    public function pricing(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
         return $this->hasOne(UnitPricing::class);
     }
 
-    public function statusHistories()
+    public function statusHistories(): HasMany
     {
         return $this->hasMany(UnitStatusHistory::class)->orderBy('created_at', 'desc');
+    }
+
+    public function offers(): HasMany
+    {
+        return $this->hasMany(Offer::class)->orderBy('created_at', 'desc');
     }
 
     public function updateInventoryStatus(string $newStatus, ?string $reason = null, ?int $userId = null): void
