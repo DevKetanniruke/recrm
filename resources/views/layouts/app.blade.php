@@ -116,6 +116,23 @@
                         <i class="bi bi-receipt"></i> Payment Receipts
                     </a>
                 @endif
+
+                <div class="px-3 my-2 text-uppercase text-muted fw-bold" style="font-size: 0.65rem; letter-spacing: 1px;">Marketing & Automation</div>
+                <a class="nav-link {{ request()->routeIs('communication.templates.*') ? 'active' : '' }}" href="{{ route('communication.templates.index') }}">
+                    <i class="bi bi-file-earmark-code"></i> Templates Engine
+                </a>
+                <a class="nav-link {{ request()->routeIs('communication.campaigns.*') ? 'active' : '' }}" href="{{ route('communication.campaigns.index') }}">
+                    <i class="bi bi-megaphone-fill"></i> Marketing Campaigns
+                </a>
+                <a class="nav-link {{ request()->routeIs('communication.automations.*') ? 'active' : '' }}" href="{{ route('communication.automations.index') }}">
+                    <i class="bi bi-lightning-charge-fill"></i> Event Automations
+                </a>
+                <a class="nav-link {{ request()->routeIs('communication.logs.*') ? 'active' : '' }}" href="{{ route('communication.logs.index') }}">
+                    <i class="bi bi-envelope-paper"></i> Outbound Logs
+                </a>
+                <a class="nav-link {{ request()->routeIs('communication.optouts.*') ? 'active' : '' }}" href="{{ route('communication.optouts.index') }}">
+                    <i class="bi bi-slash-circle-fill"></i> Customer Opt-Outs
+                </a>
             </nav>
         </div>
 

@@ -25,6 +25,11 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\SiteVisitController;
 use App\Http\Controllers\UnitController;
+use App\Http\Controllers\AutomationController;
+use App\Http\Controllers\CampaignController;
+use App\Http\Controllers\CommunicationLogController;
+use App\Http\Controllers\CommunicationTemplateController;
+use App\Http\Controllers\OptOutController;
 use App\Http\Controllers\UnitTypeController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -207,5 +212,32 @@ Route::middleware(['auth'])->group(function () {
 
         // V0.6 Financial Dashboard & Reports
         Route::get('/financial-reports', [FinancialReportController::class, 'index'])->name('financial-reports.index');
+    });
+
+    // V0.7 Marketing, Communication & Automation Routes
+    Route::middleware(['auth'])->group(function () {
+        // Communication Templates
+        Route::get('/communication/templates', [CommunicationTemplateController::class, 'index'])->name('communication.templates.index');
+        Route::get('/communication/templates/create', [CommunicationTemplateController::class, 'create'])->name('communication.templates.create');
+        Route::post('/communication/templates', [CommunicationTemplateController::class, 'store'])->name('communication.templates.store');
+        Route::get('/communication/templates/{template}/edit', [CommunicationTemplateController::class, 'edit'])->name('communication.templates.edit');
+        Route::put('/communication/templates/{template}', [CommunicationTemplateController::class, 'update'])->name('communication.templates.update');
+
+        // Marketing Campaigns
+        Route::get('/communication/campaigns', [CampaignController::class, 'index'])->name('communication.campaigns.index');
+        Route::get('/communication/campaigns/create', [CampaignController::class, 'create'])->name('communication.campaigns.create');
+        Route::post('/communication/campaigns', [CampaignController::class, 'store'])->name('communication.campaigns.store');
+        Route::post('/communication/campaigns/{campaign}/launch', [CampaignController::class, 'launch'])->name('communication.campaigns.launch');
+        Route::post('/communication/campaigns/{campaign}/cancel', [CampaignController::class, 'cancel'])->name('communication.campaigns.cancel');
+
+        // Event Automation Rules
+        Route::get('/communication/automations', [AutomationController::class, 'index'])->name('communication.automations.index');
+        Route::post('/communication/automations', [AutomationController::class, 'store'])->name('communication.automations.store');
+        Route::post('/communication/automations/{rule}/toggle', [AutomationController::class, 'toggle'])->name('communication.automations.toggle');
+
+        // Communication Audit Logs & Opt-Outs
+        Route::get('/communication/logs', [CommunicationLogController::class, 'index'])->name('communication.logs.index');
+        Route::get('/communication/opt-outs', [OptOutController::class, 'index'])->name('communication.optouts.index');
+        Route::post('/communication/opt-outs', [OptOutController::class, 'store'])->name('communication.optouts.store');
     });
 });
