@@ -19,16 +19,21 @@ class BookingPolicy
 
     public function create(User $user): bool
     {
-        return $user->isSalesAgent() || $user->isProjectManager();
+        return true;
     }
 
     public function update(User $user, Booking $booking): bool
     {
-        return ($user->company_id === $booking->company_id && ($user->isSalesAgent() || $user->isProjectManager())) || $user->isSuperAdmin();
+        return $user->company_id === $booking->company_id;
+    }
+
+    public function cancel(User $user, Booking $booking): bool
+    {
+        return $user->company_id === $booking->company_id && ($user->isAdmin() || $user->isManager() || $user->hasPermissionTo('bookings.cancel'));
     }
 
     public function delete(User $user, Booking $booking): bool
     {
-        return ($user->company_id === $booking->company_id && $user->isAdmin()) || $user->isSuperAdmin();
+        return $user->company_id === $booking->company_id && ($user->isAdmin() || $user->isSuperAdmin());
     }
 }

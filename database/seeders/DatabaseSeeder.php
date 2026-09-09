@@ -73,6 +73,11 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Approve Offers', 'slug' => 'offers.approve', 'module' => 'offers'],
             ['name' => 'View Bookings', 'slug' => 'bookings.view', 'module' => 'bookings'],
             ['name' => 'Create Bookings', 'slug' => 'bookings.create', 'module' => 'bookings'],
+            ['name' => 'Cancel Bookings', 'slug' => 'bookings.cancel', 'module' => 'bookings'],
+            ['name' => 'View Customers', 'slug' => 'customers.view', 'module' => 'customers'],
+            ['name' => 'Create Customers', 'slug' => 'customers.create', 'module' => 'customers'],
+            ['name' => 'Edit Customers', 'slug' => 'customers.edit', 'module' => 'customers'],
+            ['name' => 'Delete Customers', 'slug' => 'customers.delete', 'module' => 'customers'],
             ['name' => 'View Payments', 'slug' => 'payments.view', 'module' => 'payments'],
             ['name' => 'Record Payments', 'slug' => 'payments.create', 'module' => 'payments'],
         ];

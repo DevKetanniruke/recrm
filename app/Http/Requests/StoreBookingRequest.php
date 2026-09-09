@@ -8,30 +8,31 @@ class StoreBookingRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return auth()->check() && (auth()->user()->isSalesAgent() || auth()->user()->isProjectManager());
+        return auth()->check();
     }
 
     public function rules(): array
     {
         return [
             'unit_id' => 'required|exists:units,id',
+            'project_id' => 'nullable|exists:projects,id',
             'lead_id' => 'nullable|exists:leads,id',
-            'customer_first_name' => 'required|string|max:100',
-            'customer_last_name' => 'nullable|string|max:100',
-            'customer_email' => 'nullable|email|max:255',
-            'customer_phone' => 'required|string|max:20',
-            'customer_pan_number' => 'nullable|string|max:50',
-            'customer_address' => 'nullable|string',
+            'customer_id' => 'nullable|exists:customers,id',
+            'first_name' => 'required_without:customer_id|nullable|string|max:100',
+            'last_name' => 'required_without:customer_id|nullable|string|max:100',
+            'mobile' => 'required_without:customer_id|nullable|string|max:20',
+            'email' => 'required_without:customer_id|nullable|email|max:150',
             'booking_date' => 'required|date',
+            'quoted_price' => 'nullable|numeric|min:0',
             'agreed_price' => 'required|numeric|min:1',
             'discount_amount' => 'nullable|numeric|min:0',
             'tax_amount' => 'nullable|numeric|min:0',
+            'total_amount' => 'required|numeric|min:1',
             'booking_amount_paid' => 'required|numeric|min:0',
+            'payment_mode' => 'nullable|string|max:50',
+            'payment_reference' => 'nullable|string|max:100',
             'terms_conditions' => 'nullable|string',
-            'milestones' => 'nullable|array',
-            'milestones.*.milestone_name' => 'required_with:milestones|string',
-            'milestones.*.due_date' => 'required_with:milestones|date',
-            'milestones.*.amount_due' => 'required_with:milestones|numeric|min:0',
+            'co_applicants' => 'nullable|array',
         ];
     }
 }

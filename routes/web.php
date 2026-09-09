@@ -5,8 +5,10 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\BuildingController;
 use App\Http\Controllers\CalendarController;
+use App\Http\Controllers\CoApplicantController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\CustomerDocumentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InventoryGridController;
 use App\Http\Controllers\LeadConfigController;
@@ -158,12 +160,25 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/offers/{offer}/pdf', [OfferController::class, 'downloadPdf'])->name('offers.pdf');
         Route::post('/offers/{offer}/convert-booking', [OfferController::class, 'convertToBooking'])->name('offers.convert-booking');
 
+        // V0.5 Customer Management & Document Vault Routes
         Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');
+        Route::get('/customers-create', [CustomerController::class, 'create'])->name('customers.create');
+        Route::post('/customers', [CustomerController::class, 'store'])->name('customers.store');
         Route::get('/customers/{customer}', [CustomerController::class, 'show'])->name('customers.show');
+        Route::get('/customers/{customer}/edit', [CustomerController::class, 'edit'])->name('customers.edit');
+        Route::put('/customers/{customer}', [CustomerController::class, 'update'])->name('customers.update');
         Route::post('/customers/{customer}/kyc', [CustomerController::class, 'updateKyc'])->name('customers.update-kyc');
+
+        Route::post('/customers/{customer}/co-applicants', [CoApplicantController::class, 'store'])->name('co-applicants.store');
+        Route::delete('/co-applicants/{coApplicant}', [CoApplicantController::class, 'destroy'])->name('co-applicants.destroy');
+
+        Route::post('/customers/{customer}/documents', [CustomerDocumentController::class, 'store'])->name('customer-documents.store');
+        Route::get('/customer-documents/{document}/download', [CustomerDocumentController::class, 'download'])->name('customer-documents.download');
+        Route::post('/customer-documents/{document}/verify', [CustomerDocumentController::class, 'verify'])->name('customer-documents.verify');
     });
 
     Route::middleware(['permission:bookings.view'])->group(function () {
+        Route::get('/bookings/{booking}/pdf', [BookingController::class, 'downloadConfirmationPdf'])->name('bookings.pdf');
         Route::resource('bookings', BookingController::class)->except(['destroy']);
         Route::post('/bookings/{booking}/cancel', [BookingController::class, 'cancel'])->name('bookings.cancel');
     });

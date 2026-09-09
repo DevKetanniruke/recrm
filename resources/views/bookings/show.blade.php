@@ -1,234 +1,186 @@
 @extends('layouts.app')
 
-@section('title', 'Booking #' . $booking->booking_number)
-@section('page-title', 'Booking Agreement Details: #' . $booking->booking_number)
+@section('title', 'Booking #' . $booking->booking_number . ' - Details')
 
 @section('content')
-<div class="row g-4 mb-4">
-    <!-- Left Column: Booking Overview -->
-    <div class="col-lg-4">
-        <div class="card border-0 shadow-sm rounded-4 mb-4">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="badge bg-success px-3 py-1">{{ $booking->status }}</span>
-                    <small class="text-secondary">{{ $booking->booking_date->format('M d, Y') }}</small>
-                </div>
-
-                <h5 class="brand-font text-dark mb-1">Ref: {{ $booking->booking_number }}</h5>
-                <p class="text-primary fw-bold fs-4 mb-3">${{ number_format($booking->total_amount, 2) }}</p>
-
-                <div class="border-top pt-3 text-secondary small">
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>Buyer Name:</span>
-                        <strong class="text-dark">{{ $booking->customer->full_name ?? 'N/A' }}</strong>
-                    </div>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>Phone:</span>
-                        <strong class="text-dark">{{ $booking->customer->phone ?? 'N/A' }}</strong>
-                    </div>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>Unit Assigned:</span>
-                        <strong class="text-dark">Unit #{{ $booking->unit->unit_number ?? 'N/A' }} ({{ $booking->unit->unit_type ?? '' }})</strong>
-                    </div>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>Project:</span>
-                        <strong class="text-dark">{{ $booking->unit->floor->wing->building->project->name ?? 'N/A' }}</strong>
-                    </div>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>Sales Agent:</span>
-                        <strong class="text-dark">{{ $booking->salesAgent->name ?? 'N/A' }}</strong>
-                    </div>
-                </div>
-
-                <div class="p-3 bg-light rounded-3 mt-3 border">
-                    <div class="d-flex justify-content-between small text-secondary mb-1">
-                        <span>Total Paid to Date:</span>
-                        <strong class="text-success">${{ number_format($booking->totalPaid(), 2) }}</strong>
-                    </div>
-                    <div class="d-flex justify-content-between small text-secondary">
-                        <span>Balance Outstanding:</span>
-                        <strong class="text-danger">${{ number_format($booking->balanceDue(), 2) }}</strong>
-                    </div>
-                </div>
-
+<div class="container-fluid px-4 py-3">
+    <!-- Top Header & Action Buttons -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <a href="{{ route('bookings.index') }}" class="text-decoration-none text-muted small"><i class="bi bi-arrow-left"></i> Bookings Pipeline</a>
+            <div class="d-flex align-items-center gap-2 mt-1">
+                <h3 class="fw-bold text-dark mb-0">Booking #{{ $booking->booking_number }}</h3>
                 @if($booking->status == 'Confirmed')
-                    <button class="btn btn-outline-danger btn-sm w-100 mt-3" data-bs-toggle="modal" data-bs-target="#cancelBookingModal">
-                        Cancel Booking & Release Unit
-                    </button>
+                    <span class="badge bg-success-subtle text-success rounded-pill px-3 py-1"><i class="bi bi-check-circle-fill me-1"></i> Confirmed</span>
+                @elseif($booking->status == 'Cancelled')
+                    <span class="badge bg-danger-subtle text-danger rounded-pill px-3 py-1"><i class="bi bi-x-circle-fill me-1"></i> Cancelled</span>
+                @else
+                    <span class="badge bg-secondary-subtle text-secondary rounded-pill px-3 py-1">{{ $booking->status }}</span>
                 @endif
             </div>
         </div>
-    </div>
-
-    <!-- Right Column: Payment Schedule & Financial Collections -->
-    <div class="col-lg-8">
-        <!-- Record Payment Quick Action -->
-        <div class="card border-0 shadow-sm rounded-4 mb-4">
-            <div class="card-header bg-white border-0 py-3 d-flex align-items-center justify-content-between">
-                <h6 class="mb-0 brand-font fw-bold"><i class="bi bi-clock-history me-2 text-primary"></i> Payment Schedule Milestones</h6>
-                <button class="btn btn-sm btn-success fw-semibold" data-bs-toggle="modal" data-bs-target="#recordPaymentModal">
-                    <i class="bi bi-plus-circle me-1"></i> Record Milestone Payment
+        <div class="d-flex gap-2">
+            <a href="{{ route('bookings.pdf', $booking->id) }}" target="_blank" class="btn btn-outline-dark rounded-pill px-4">
+                <i class="bi bi-printer me-1"></i> Printable Confirmation
+            </a>
+            @if($booking->status != 'Cancelled')
+                <button type="button" data-bs-toggle="modal" data-bs-target="#cancelBookingModal" class="btn btn-outline-danger rounded-pill px-4">
+                    <i class="bi bi-x-circle me-1"></i> Cancel Booking
                 </button>
+            @endif
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Left Side: Property & Financial Summary -->
+        <div class="col-lg-8">
+            <!-- Property Unit Summary Card -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <h5 class="fw-bold text-dark mb-0"><i class="bi bi-building text-primary me-2"></i> Property & Unit Information</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="text-muted small d-block">Unit Number</label>
+                            <span class="fw-bold text-primary fs-5">Unit #{{ $booking->unit?->unit_number }}</span>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="text-muted small d-block">Project Name</label>
+                            <span class="fw-bold text-dark fs-6">{{ $booking->unit?->project?->name ?: $booking->project?->name }}</span>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="text-muted small d-block">Floor & Location</label>
+                            <span class="fw-semibold text-dark">Floor {{ $booking->unit?->floor_number }}</span>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="table-responsive">
-                <table class="table align-middle mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Milestone</th>
-                            <th>Due Date</th>
-                            <th>Amount Due</th>
-                            <th>Paid</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($booking->paymentSchedules as $sch)
-                            <tr>
-                                <td><span class="fw-semibold text-dark">{{ $sch->milestone_name }}</span></td>
-                                <td>{{ $sch->due_date->format('M d, Y') }}</td>
-                                <td>${{ number_format($sch->amount_due, 2) }}</td>
-                                <td class="text-success fw-semibold">${{ number_format($sch->amount_paid, 2) }}</td>
-                                <td>
-                                    <span class="badge @if($sch->status == 'Paid') bg-success @elseif($sch->status == 'Partially Paid') bg-warning text-dark @else bg-secondary @endif">
-                                        {{ $sch->status }}
-                                    </span>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="5" class="text-center py-3 text-secondary">No milestone schedules configured.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+
+            <!-- Financial & Payment Summary -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <h5 class="fw-bold text-dark mb-0"><i class="bi bi-cash-stack text-success me-2"></i> Agreed Financial Package</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="text-muted small d-block">Quoted Price</label>
+                            <span class="fw-semibold text-dark">₹{{ number_format($booking->quoted_price, 2) }}</span>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="text-muted small d-block">Agreed Price</label>
+                            <span class="fw-bold text-dark fs-6">₹{{ number_format($booking->agreed_price, 2) }}</span>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="text-muted small d-block">Taxes (GST)</label>
+                            <span class="fw-semibold text-dark">₹{{ number_format($booking->tax_amount, 2) }}</span>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="text-muted small d-block">Total Value</label>
+                            <span class="fw-bold text-success fs-6">₹{{ number_format($booking->total_amount, 2) }}</span>
+                        </div>
+
+                        <hr class="text-muted my-2">
+
+                        <div class="col-md-4">
+                            <label class="text-muted small d-block">Initial Token Amount Paid</label>
+                            <span class="badge bg-success-subtle text-success fs-6 px-3 py-1">₹{{ number_format($booking->booking_amount_paid, 2) }}</span>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="text-muted small d-block">Payment Mode</label>
+                            <span class="fw-semibold text-dark">{{ $booking->payment_mode ?: 'N/A' }}</span>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="text-muted small d-block">Payment Reference</label>
+                            <span class="fw-semibold text-dark">{{ $booking->payment_reference ?: 'N/A' }}</span>
+                        </div>
+                    </div>
+                </div>
             </div>
+
+            <!-- Cancellation Audit Alert if Cancelled -->
+            @if($booking->status == 'Cancelled')
+                <div class="card border-0 bg-danger-subtle rounded-4 mb-4">
+                    <div class="card-body p-4">
+                        <h6 class="fw-bold text-danger mb-2"><i class="bi bi-exclamation-triangle-fill me-2"></i> Booking Cancellation Audit Record</h6>
+                        <div class="small text-danger-emphasis mb-1"><strong>Cancelled Date:</strong> {{ $booking->cancelled_at ? $booking->cancelled_at->format('d M Y, h:i A') : 'N/A' }}</div>
+                        <div class="small text-danger-emphasis mb-1"><strong>Cancelled By:</strong> {{ $booking->cancelledBy?->name ?: 'Authorized Staff' }}</div>
+                        <div class="small text-danger-emphasis mb-1"><strong>Reason:</strong> {{ $booking->cancellation_reason }}</div>
+                        <div class="small text-danger-emphasis"><strong>Refund Amount:</strong> ₹{{ number_format($booking->cancellation_refund_amount, 2) }}</div>
+                    </div>
+                </div>
+            @endif
         </div>
 
-        <!-- Recorded Payments History -->
-        <div class="card border-0 shadow-sm rounded-4">
-            <div class="card-header bg-white border-0 py-3">
-                <h6 class="mb-0 brand-font fw-bold"><i class="bi text-success bi-receipt me-2"></i> Payment Receipts History</h6>
-            </div>
-            <div class="table-responsive">
-                <table class="table align-middle mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Receipt Ref</th>
-                            <th>Date</th>
-                            <th>Method</th>
-                            <th>Amount Paid</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($booking->payments as $pmt)
-                            <tr>
-                                <td><span class="fw-bold text-dark">{{ $pmt->receipt_number }}</span></td>
-                                <td>{{ $pmt->payment_date->format('M d, Y') }}</td>
-                                <td><span class="badge bg-light text-dark border">{{ $pmt->payment_method }}</span></td>
-                                <td class="fw-bold text-success">${{ number_format($pmt->amount_paid, 2) }}</td>
-                                <td>
-                                    <a href="{{ route('payments.receipt', $pmt->id) }}" class="btn btn-sm btn-outline-primary" target="_blank">
-                                        Print Receipt <i class="bi bi-printer ms-1"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="5" class="text-center py-3 text-secondary">No payment receipts recorded yet.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+        <!-- Right Side: Customer & Co-Applicants Card -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold text-dark mb-0"><i class="bi bi-person-badge text-info me-2"></i> Customer Profile</h5>
+                    @if($booking->customer)
+                        <a href="{{ route('customers.show', $booking->customer->id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">360 Profile</a>
+                    @endif
+                </div>
+                <div class="card-body p-4">
+                    @if($booking->customer)
+                        <div class="mb-3">
+                            <label class="text-muted small d-block">Primary Customer</label>
+                            <span class="fw-bold text-dark fs-6">{{ $booking->customer->full_name }}</span>
+                            <div class="small text-muted"><i class="bi bi-telephone me-1"></i> {{ $booking->customer->primary_mobile }}</div>
+                            <div class="small text-muted"><i class="bi bi-envelope me-1"></i> {{ $booking->customer->email }}</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="text-muted small d-block">PAN Card</label>
+                            <span class="fw-bold text-uppercase">{{ $booking->customer->PAN ?? $booking->customer->pan_number ?? 'N/A' }}</span>
+                        </div>
+                        @if($booking->customer->coApplicants->count() > 0)
+                            <div>
+                                <label class="text-muted small d-block mb-1">Co-Applicants</label>
+                                @foreach($booking->customer->coApplicants as $co)
+                                    <div class="small bg-light p-2 rounded mb-1 border">
+                                        <div class="fw-bold text-dark">{{ $co->customer_name }}</div>
+                                        <div class="text-muted text-capitalize">{{ $co->relationship }} ({{ number_format($co->ownership_percentage, 2) }}%)</div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
+                    @else
+                        <div class="text-muted small">No customer linked.</div>
+                    @endif
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal: Record Payment -->
-<div class="modal fade" id="recordPaymentModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow rounded-4">
-            <form action="{{ route('payments.store') }}" method="POST">
-                @csrf
-                <input type="hidden" name="booking_id" value="{{ $booking->id }}">
-                <div class="modal-header border-0">
-                    <h5 class="modal-title brand-font">Record Milestone Payment</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold text-secondary">Target Milestone (Optional)</label>
-                        <select name="payment_schedule_id" class="form-select">
-                            <option value="">-- Auto-Allocate to Pending Milestones --</option>
-                            @foreach($booking->paymentSchedules as $sch)
-                                <option value="{{ $sch->id }}">{{ $sch->milestone_name }} (Due: ${{ number_format($sch->amount_due - $sch->amount_paid, 2) }})</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold text-secondary">Amount Paid ($) *</label>
-                        <input type="number" step="0.01" name="amount_paid" class="form-control" placeholder="10000" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold text-secondary">Payment Method *</label>
-                        <select name="payment_method" class="form-select" required>
-                            <option value="Bank Transfer">Bank Transfer</option>
-                            <option value="Cheque">Cheque</option>
-                            <option value="UPI">UPI / Digital</option>
-                            <option value="Cash">Cash</option>
-                            <option value="Credit Card">Credit Card</option>
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold text-secondary">Transaction Ref / Cheque No.</label>
-                        <input type="text" name="transaction_reference" class="form-control" placeholder="e.g. TXN-99882211">
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold text-secondary">Payment Date *</label>
-                        <input type="date" name="payment_date" class="form-control" value="{{ date('Y-m-d') }}" required>
-                    </div>
-                </div>
-                <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-success fw-semibold px-4">Generate Receipt</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Modal: Cancel Booking -->
+<!-- Cancellation Modal -->
+@if($booking->status != 'Cancelled')
 <div class="modal fade" id="cancelBookingModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow rounded-4">
-            <form action="{{ route('bookings.cancel', $booking->id) }}" method="POST">
-                @csrf
-                <div class="modal-header border-0">
-                    <h5 class="modal-title brand-font text-danger">Cancel Booking #{{ $booking->booking_number }}</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    <div class="modal-dialog">
+        <form action="{{ route('bookings.cancel', $booking->id) }}" method="POST" class="modal-content rounded-4 border-0">
+            @csrf
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-danger"><i class="bi bi-exclamation-octagon me-2"></i> Cancel Unit Booking</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="text-muted small">Cancelling this booking will release Unit #{{ $booking->unit?->unit_number }} back to <strong>Available</strong> status in the inventory matrix.</p>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Cancellation Reason <span class="text-danger">*</span></label>
+                    <textarea name="cancellation_reason" class="form-control" rows="3" placeholder="Provide clear reason for cancellation..." required></textarea>
                 </div>
-                <div class="modal-body">
-                    <p class="text-secondary small">Cancelling this booking will release Unit #{{ $booking->unit->unit_number ?? '' }} back to <strong>Available</strong> status.</p>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold text-secondary">Reason for Cancellation *</label>
-                        <textarea name="cancellation_reason" class="form-control" rows="3" required></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold text-secondary">Refund Amount ($) *</label>
-                        <input type="number" step="0.01" name="cancellation_refund_amount" class="form-control" value="0" required>
-                    </div>
+                <div class="mb-0">
+                    <label class="form-label fw-semibold">Refund Amount (₹)</label>
+                    <input type="number" step="0.01" name="cancellation_refund_amount" class="form-control rounded-pill" value="0.00">
                 </div>
-                <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-danger fw-semibold">Confirm Cancellation</button>
-                </div>
-            </form>
-        </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-danger rounded-pill px-4">Confirm Cancellation</button>
+            </div>
+        </form>
     </div>
 </div>
+@endif
 @endsection

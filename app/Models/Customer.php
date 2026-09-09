@@ -13,19 +13,57 @@ class Customer extends Model
 
     protected $fillable = [
         'company_id',
+        'customer_number',
         'lead_id',
         'first_name',
+        'middle_name',
         'last_name',
+        'mobile',
+        'alternate_mobile',
         'email',
-        'phone',
-        'pan_number',
-        'tax_id',
+        'date_of_birth',
+        'occupation',
+        'company_or_employer',
+        'nationality',
         'address',
         'city',
         'state',
+        'pincode',
+        'country',
+        'PAN',
+        'pan_number',
+        'tax_id',
+        'reference',
+        'communication_preference',
         'zip_code',
         'kyc_status',
     ];
+
+    protected $casts = [
+        'date_of_birth' => 'date',
+    ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($customer) {
+            if (empty($customer->customer_number)) {
+                $year = date('Y');
+                $count = static::where('company_id', $customer->company_id)->count() + 1;
+                $customer->customer_number = 'CUST-' . $year . '-' . str_pad((string)$count, 5, '0', STR_PAD_LEFT);
+            }
+            if (empty($customer->phone) && !empty($customer->mobile)) {
+                $customer->phone = $customer->mobile;
+            }
+            if (empty($customer->mobile) && !empty($customer->phone)) {
+                $customer->mobile = $customer->phone;
+            }
+            if (empty($customer->phone) && empty($customer->mobile)) {
+                $customer->phone = '0000000000';
+            }
+        });
+    }
 
     public function lead()
     {
@@ -37,8 +75,24 @@ class Customer extends Model
         return $this->hasMany(Booking::class);
     }
 
+    public function coApplicants()
+    {
+        return $this->hasMany(CoApplicant::class);
+    }
+
+    public function documents()
+    {
+        return $this->hasMany(CustomerDocument::class);
+    }
+
     public function getFullNameAttribute(): string
     {
-        return trim("{$this->first_name} {$this->last_name}");
+        $parts = array_filter([$this->first_name, $this->middle_name, $this->last_name]);
+        return implode(' ', $parts);
+    }
+
+    public function getPrimaryMobileAttribute(): string
+    {
+        return $this->mobile ?: ($this->phone ?: '');
     }
 }
