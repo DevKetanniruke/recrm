@@ -2,99 +2,116 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Receipt #{{ $payment->receipt_number }}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Payment Receipt - {{ $payment->receipt_number }}</title>
     <style>
-        body { background: #f8fafc; font-family: sans-serif; padding: 2rem; }
-        .receipt-card { background: #fff; border-radius: 1rem; border: 1px solid #e2e8f0; max-width: 750px; margin: auto; padding: 2.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
-        @media print {
-            body { background: #fff; padding: 0; }
-            .receipt-card { border: none; shadow: none; padding: 0; }
-            .no-print { display: none; }
-        }
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333; margin: 0; padding: 40px; font-size: 13px; line-height: 1.6; }
+        .header { text-align: center; border-bottom: 2px solid #16a34a; padding-bottom: 20px; margin-bottom: 30px; }
+        .company-name { font-size: 24px; font-weight: bold; color: #14532d; margin-bottom: 5px; text-transform: uppercase; }
+        .company-meta { font-size: 11px; color: #64748b; }
+        .doc-title { font-size: 18px; font-weight: bold; text-align: center; background: #f0fdf4; color: #166534; padding: 8px; border-radius: 4px; margin-bottom: 25px; letter-spacing: 1px; }
+        .section-title { font-size: 14px; font-weight: bold; color: #1e293b; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px; margin-top: 20px; margin-bottom: 12px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th, td { padding: 8px 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        th { background: #f8fafc; font-weight: bold; color: #475569; font-size: 11px; text-uppercase; }
+        .amount-box { font-size: 22px; font-weight: bold; color: #15803d; text-align: right; }
+        .footer { margin-top: 50px; border-top: 1px solid #e2e8f0; padding-top: 20px; font-size: 11px; text-align: center; color: #64748b; }
+        .signatures { margin-top: 60px; display: flex; justify-content: space-between; }
+        .sig-box { width: 45%; text-align: center; border-top: 1px dashed #94a3b8; padding-top: 8px; font-weight: bold; font-size: 12px; }
     </style>
 </head>
 <body>
-    <div class="receipt-card">
-        <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
-            <div>
-                <h4 class="fw-bold mb-0 text-primary">{{ $payment->company->name ?? 'PropFlow Real Estate' }}</h4>
-                <small class="text-secondary">{{ $payment->company->address ?? 'Corporate Developer Office' }}</small>
-            </div>
-            <div class="text-end">
-                <h5 class="fw-bold text-dark mb-0">OFFICIAL RECEIPT</h5>
-                <span class="badge bg-success">Status: {{ $payment->status }}</span>
-            </div>
+    <div class="header">
+        <div class="company-name">{{ $company->name ?? 'Acme Real Estate Developers' }}</div>
+        <div class="company-meta">
+            {{ $company->legal_name ?: $company->name }} | {{ $company->email ?: 'contact@company.com' }}
+            @if(isset($settings['RERA_NUMBER'])) | RERA Reg No: {{ $settings['RERA_NUMBER'] }} @endif
         </div>
+    </div>
 
-        <div class="row mb-4">
-            <div class="col-6">
-                <small class="text-secondary d-block">Received From:</small>
-                <h6 class="fw-bold text-dark mb-0">{{ $payment->booking->customer->full_name ?? 'N/A' }}</h6>
-                <small class="text-secondary">Phone: {{ $payment->booking->customer->phone ?? '' }}</small>
-            </div>
-            <div class="col-6 text-end">
-                <small class="text-secondary d-block">Receipt Ref:</small>
-                <h6 class="fw-bold text-dark font-monospace mb-0">{{ $payment->receipt_number }}</h6>
-                <small class="text-secondary">Date: {{ $payment->payment_date->format('M d, Y') }}</small>
-            </div>
-        </div>
+    <div class="doc-title">OFFICIAL PAYMENT COLLECTION RECEIPT</div>
 
-        <table class="table table-bordered mb-4">
-            <thead class="table-light">
+    <table>
+        <tr>
+            <td width="50%">
+                <strong>Receipt Number:</strong> {{ $payment->receipt_number }}<br>
+                <strong>Payment Number:</strong> {{ $payment->payment_number }}<br>
+                <strong>Payment Date:</strong> {{ $payment->payment_date ? $payment->payment_date->format('d M Y') : date('d M Y') }}
+            </td>
+            <td width="50%">
+                <strong>Booking Number:</strong> {{ $payment->booking?->booking_number }}<br>
+                <strong>Project & Unit:</strong> {{ $payment->booking?->unit?->project?->name }} (Unit #{{ $payment->booking?->unit?->unit_number }})<br>
+                <strong>Received By:</strong> {{ $payment->receivedBy?->name ?: 'Accounts Officer' }}
+            </td>
+        </tr>
+    </table>
+
+    <div class="section-title">PAYEE & INSTRUMENT DETAILS</div>
+    <table>
+        <tr>
+            <th width="30%">Customer Name</th>
+            <th width="30%">Payment Mode / Instrument</th>
+            <th width="40%">Transaction Reference / Cheque #</th>
+        </tr>
+        <tr>
+            <td><strong>{{ $payment->booking?->customer?->full_name ?: $payment->customer?->full_name }}</strong></td>
+            <td>{{ $payment->payment_mode ?: $payment->payment_method }}</td>
+            <td>{{ $payment->transaction_reference ?: ($payment->bank_cheque_number ?: 'N/A') }}</td>
+        </tr>
+    </table>
+
+    <div class="section-title">COLLECTION & BALANCE SUMMARY</div>
+    <table>
+        <tr>
+            <th>Description</th>
+            <th style="text-align: right;">Amount (INR ₹)</th>
+        </tr>
+        <tr>
+            <td>Total Agreed Agreement Value</td>
+            <td style="text-align: right;">₹{{ number_format($financialSummary['total_package_value'] ?? $payment->booking?->total_amount, 2) }}</td>
+        </tr>
+        <tr>
+            <td>Total Cumulative Received to Date</td>
+            <td style="text-align: right; color: #15803d; font-weight: bold;">₹{{ number_format($financialSummary['total_received_amount'] ?? $payment->booking?->totalPaid(), 2) }}</td>
+        </tr>
+        <tr>
+            <td>Current Outstanding Balance Due</td>
+            <td style="text-align: right; color: #dc2626;">₹{{ number_format($financialSummary['total_outstanding_amount'] ?? $payment->booking?->balanceDue(), 2) }}</td>
+        </tr>
+        <tr style="background: #f0fdf4;">
+            <td style="font-size: 14px; font-weight: bold; color: #166534;">AMOUNT RECEIVED IN THIS RECEIPT</td>
+            <td class="amount-box">₹{{ number_format($payment->amount_paid, 2) }}</td>
+        </tr>
+    </table>
+
+    @if($payment->allocations->count() > 0)
+        <div class="section-title">MILESTONE ALLOCATION BREAKDOWN</div>
+        <table>
+            <tr>
+                <th>Milestone Item</th>
+                <th>Due Date</th>
+                <th style="text-align: right;">Allocated Amount</th>
+            </tr>
+            @foreach($payment->allocations as $alloc)
                 <tr>
-                    <th>Description / Details</th>
-                    <th class="text-end">Amount</th>
+                    <td>{{ $alloc->paymentSchedule?->milestone_name }}</td>
+                    <td>{{ $alloc->paymentSchedule?->due_date ? $alloc->paymentSchedule->due_date->format('d M Y') : 'N/A' }}</td>
+                    <td style="text-align: right; font-weight: bold;">₹{{ number_format($alloc->allocated_amount, 2) }}</td>
                 </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>
-                        <div class="fw-bold">Payment against Booking #{{ $payment->booking->booking_number }}</div>
-                        <small class="text-secondary">
-                            Project: {{ $payment->booking->unit->floor->wing->building->project->name ?? 'N/A' }} | 
-                            Unit #{{ $payment->booking->unit->unit_number ?? 'N/A' }}
-                        </small>
-                        @if($payment->paymentSchedule)
-                            <div class="small text-muted">Milestone: {{ $payment->paymentSchedule->milestone_name }}</div>
-                        @endif
-                    </td>
-                    <td class="text-end fw-bold text-dark">${{ number_format($payment->amount_paid, 2) }}</td>
-                </tr>
-            </tbody>
+            @endforeach
         </table>
+    @endif
 
-        <div class="row mb-4">
-            <div class="col-6">
-                <small class="text-secondary d-block">Payment Method:</small>
-                <strong class="text-dark">{{ $payment->payment_method }}</strong>
-                @if($payment->transaction_reference)
-                    <div class="small text-secondary">Ref: {{ $payment->transaction_reference }}</div>
-                @endif
-            </div>
-            <div class="col-6 text-end">
-                <small class="text-secondary d-block">Total Received Amount:</small>
-                <h3 class="fw-bold text-success mb-0">${{ number_format($payment->amount_paid, 2) }}</h3>
-            </div>
-        </div>
+    <div style="margin-top: 40px;">
+        <table style="border: none;">
+            <tr style="border: none;">
+                <td style="border: none;" class="sig-box">Customer Signature</td>
+                <td style="border: none;" class="sig-box">Authorized Cashier / Accountant</td>
+            </tr>
+        </table>
+    </div>
 
-        <div class="border-top pt-4 mt-5 d-flex justify-content-between align-items-end">
-            <div>
-                <small class="text-secondary d-block">Issued By: {{ $payment->receivedBy->name ?? 'System Officer' }}</small>
-                <small class="text-muted" style="font-size:0.75rem;">This is a computer-generated receipt.</small>
-            </div>
-            <div class="text-center" style="width: 150px;">
-                <div class="border-bottom pb-4"></div>
-                <small class="text-secondary mt-1 d-block">Authorized Signatory</small>
-            </div>
-        </div>
-
-        <div class="text-center mt-4 pt-3 border-top no-print">
-            <button onclick="window.print()" class="btn btn-primary px-4 fw-semibold">
-                Print Official Receipt
-            </button>
-        </div>
+    <div class="footer">
+        Computer generated receipt. Issued by {{ $company->name }}. Subject to realization of cheque / electronic transfer.
     </div>
 </body>
 </html>

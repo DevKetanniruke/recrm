@@ -9,26 +9,21 @@ class PaymentPolicy
 {
     public function viewAny(User $user): bool
     {
-        return true;
+        return $user->hasPermissionTo('payments.view') || $user->isAdmin() || $user->isAccountant();
     }
 
     public function view(User $user, Payment $payment): bool
     {
-        return $user->company_id === $payment->company_id || $user->isSuperAdmin();
+        return $user->company_id === $payment->company_id && ($user->hasPermissionTo('payments.view') || $user->isAdmin() || $user->isAccountant());
     }
 
     public function create(User $user): bool
     {
-        return $user->isAccountant() || $user->isAdmin();
+        return $user->hasPermissionTo('payments.create') || $user->isAdmin() || $user->isAccountant();
     }
 
-    public function update(User $user, Payment $payment): bool
+    public function reverse(User $user, Payment $payment): bool
     {
-        return ($user->company_id === $payment->company_id && $user->isAccountant()) || $user->isSuperAdmin();
-    }
-
-    public function delete(User $user, Payment $payment): bool
-    {
-        return ($user->company_id === $payment->company_id && $user->isAdmin()) || $user->isSuperAdmin();
+        return $user->company_id === $payment->company_id && ($user->isAdmin() || $user->hasPermissionTo('payments.reverse'));
     }
 }

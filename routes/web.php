@@ -10,12 +10,15 @@ use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CustomerDocumentController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\FinancialReportController;
 use App\Http\Controllers\InventoryGridController;
 use App\Http\Controllers\LeadConfigController;
 use App\Http\Controllers\LeadController;
 use App\Http\Controllers\LeadFollowupController;
 use App\Http\Controllers\OfferController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\PaymentDemandController;
+use App\Http\Controllers\PaymentPlanController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\RoleController;
@@ -184,8 +187,25 @@ Route::middleware(['auth'])->group(function () {
     });
 
     Route::middleware(['permission:payments.view'])->group(function () {
+        // V0.6 Payment Collection Ledger
         Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
+        Route::get('/payments-create', [PaymentController::class, 'create'])->name('payments.create');
         Route::post('/payments', [PaymentController::class, 'store'])->name('payments.store');
+        Route::get('/payments/{payment}', [PaymentController::class, 'show'])->name('payments.show');
+        Route::post('/payments/{payment}/reverse', [PaymentController::class, 'reverse'])->name('payments.reverse');
         Route::get('/payments/{payment}/receipt', [PaymentController::class, 'receipt'])->name('payments.receipt');
+
+        // V0.6 Payment Plan Templates & Generation
+        Route::get('/payment-plans/templates', [PaymentPlanController::class, 'templates'])->name('payment-plans.templates');
+        Route::post('/payment-plans/templates', [PaymentPlanController::class, 'storeTemplate'])->name('payment-plans.templates.store');
+        Route::post('/payment-plans/generate', [PaymentPlanController::class, 'generateForBooking'])->name('payment-plans.generate');
+
+        // V0.6 Demand Notices
+        Route::get('/demands', [PaymentDemandController::class, 'index'])->name('demands.index');
+        Route::post('/demands', [PaymentDemandController::class, 'store'])->name('demands.store');
+        Route::get('/demands/{demand}/pdf', [PaymentDemandController::class, 'downloadPdf'])->name('demands.pdf');
+
+        // V0.6 Financial Dashboard & Reports
+        Route::get('/financial-reports', [FinancialReportController::class, 'index'])->name('financial-reports.index');
     });
 });
