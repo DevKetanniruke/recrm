@@ -34,6 +34,7 @@ use App\Http\Controllers\CommissionStructureController;
 use App\Http\Controllers\CommunicationLogController;
 use App\Http\Controllers\CommunicationTemplateController;
 use App\Http\Controllers\OptOutController;
+use App\Http\Controllers\ReportingController;
 use App\Http\Controllers\UnitTypeController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -265,5 +266,11 @@ Route::middleware(['auth'])->group(function () {
 
         // Broker Analytics & Reports
         Route::get('/brokers/reports', [BrokerReportController::class, 'index'])->name('brokers.reports.index');
+    });
+
+    // V0.9 Central Reporting, Analytics & Executive Dashboard Routes
+    Route::middleware(['auth'])->group(function () {
+        Route::get('/reports', [ReportingController::class, 'index'])->name('reports.index');
+        Route::get('/reports/export', [ReportingController::class, 'export'])->name('reports.export');
     });
 });

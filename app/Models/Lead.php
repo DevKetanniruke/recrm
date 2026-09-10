@@ -114,6 +114,20 @@ class Lead extends Model
         );
     }
 
+    protected function name(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->full_name,
+            set: function ($value) {
+                $parts = explode(' ', trim($value), 2);
+                return [
+                    'first_name' => $parts[0] ?? '',
+                    'last_name' => $parts[1] ?? '',
+                ];
+            },
+        );
+    }
+
     protected function preferredUnitType(): Attribute
     {
         return Attribute::make(
@@ -186,5 +200,10 @@ class Lead extends Model
     public function offers(): HasMany
     {
         return $this->hasMany(Offer::class)->orderBy('created_at', 'desc');
+    }
+
+    public function bookings(): \Illuminate\Database\Eloquent\Relations\HasManyThrough
+    {
+        return $this->hasManyThrough(Booking::class, Customer::class);
     }
 }

@@ -58,6 +58,14 @@ class PaymentSchedule extends Model
         );
     }
 
+    protected function amount(): \Illuminate\Database\Eloquent\Casts\Attribute
+    {
+        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+            get: fn () => (float) ($this->amount_due ?: 0),
+            set: fn ($value) => ['amount_due' => $value, 'outstanding_amount' => $value],
+        );
+    }
+
     public function demandNotices()
     {
         return $this->hasMany(PaymentDemandNotice::class);

@@ -147,6 +147,11 @@
                 <a class="nav-link {{ request()->routeIs('brokers.reports.*') ? 'active' : '' }}" href="{{ route('brokers.reports.index') }}">
                     <i class="bi bi-graph-up-arrow"></i> Partner Performance
                 </a>
+
+                <div class="px-3 my-2 text-uppercase text-muted fw-bold" style="font-size: 0.65rem; letter-spacing: 1px;">Reporting & Analytics</div>
+                <a class="nav-link {{ request()->routeIs('reports.*') ? 'active' : '' }}" href="{{ route('reports.index') }}">
+                    <i class="bi bi-bar-chart-line-fill"></i> Central Reports Hub
+                </a>
             </nav>
         </div>
 

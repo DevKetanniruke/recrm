@@ -128,4 +128,20 @@ class Booking extends Model
     {
         return (float) ($this->total_amount - $this->totalPaid());
     }
+
+    protected function bookingCode(): \Illuminate\Database\Eloquent\Casts\Attribute
+    {
+        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+            get: fn () => $this->booking_number,
+            set: fn ($value) => ['booking_number' => $value],
+        );
+    }
+
+    protected function agreementValue(): \Illuminate\Database\Eloquent\Casts\Attribute
+    {
+        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+            get: fn () => (float) ($this->agreed_price ?: ($this->total_amount ?: 0)),
+            set: fn ($value) => ['agreed_price' => $value, 'total_amount' => $value],
+        );
+    }
 }
