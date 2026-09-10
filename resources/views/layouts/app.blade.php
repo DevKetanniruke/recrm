@@ -188,6 +188,41 @@
             </nav>
         </div>
         <div class="d-flex align-items-center gap-3">
+            <!-- Global CRM Search Input -->
+            <div class="position-relative" style="width: 280px;" x-data="{ query: '', results: [], loading: false, show: false }" @click.outside="show = false">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-secondary"></i></span>
+                    <input type="text" x-model="query" @input.debounce.300ms="
+                        if (query.length >= 2) {
+                            loading = true; show = true;
+                            fetch('/search?q=' + encodeURIComponent(query))
+                                .then(res => res.json())
+                                .then(data => { results = data.results; loading = false; });
+                        } else { results = []; show = false; }
+                    " placeholder="Search Leads, Bookings, Units..." class="form-control border-start-0 bg-white">
+                </div>
+
+                <!-- Live Search Dropdown -->
+                <div x-show="show" x-cloak class="position-absolute start-0 end-0 bg-white shadow-lg rounded-3 border mt-1 p-2" style="z-index: 1050; max-height: 350px; overflow-y: auto;">
+                    <template x-if="loading">
+                        <div class="text-center py-2 text-secondary small"><span class="spinner-border spinner-border-sm me-1"></span> Searching CRM records...</div>
+                    </template>
+                    <template x-if="!loading && results.length === 0">
+                        <div class="text-center py-2 text-secondary small">No matching CRM records found.</div>
+                    </template>
+                    <template x-for="item in results" :key="item.url">
+                        <a :href="item.url" class="d-flex align-items-center gap-2 p-2 text-decoration-none text-dark border-bottom border-light hover-bg-light rounded">
+                            <div class="p-2 rounded bg-light text-primary"><i class="bi" :class="item.icon"></i></div>
+                            <div class="flex-grow-1" style="line-height: 1.2;">
+                                <div class="fw-bold small" x-text="item.title"></div>
+                                <small class="text-muted" style="font-size:0.75rem;" x-text="item.subtitle"></small>
+                            </div>
+                            <span class="badge" :class="item.badge_class" style="font-size:0.65rem;" x-text="item.badge"></span>
+                        </a>
+                    </template>
+                </div>
+            </div>
+
             <span class="badge bg-light text-dark border px-3 py-2">
                 <i class="bi bi-building text-primary me-1"></i> {{ auth()->user()->company->name ?? 'Default Builder' }}
             </span>

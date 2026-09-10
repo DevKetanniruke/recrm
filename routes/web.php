@@ -35,16 +35,21 @@ use App\Http\Controllers\CommunicationLogController;
 use App\Http\Controllers\CommunicationTemplateController;
 use App\Http\Controllers\OptOutController;
 use App\Http\Controllers\ReportingController;
+use App\Http\Controllers\GlobalSearchController;
+use App\Http\Controllers\Api\V1\BookingApiController;
+use App\Http\Controllers\Api\V1\CustomerApiController;
+use App\Http\Controllers\Api\V1\LeadApiController;
+use App\Http\Controllers\Api\V1\ProjectApiController;
 use App\Http\Controllers\UnitTypeController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
-// Guest Authentication Routes
+// Guest Authentication Routes with Rate Limiting Protection
 Route::get('login', [AuthController::class, 'showLogin'])->name('login');
-Route::post('login', [AuthController::class, 'login']);
+Route::post('login', [AuthController::class, 'login'])->middleware('throttle:10,1');
 Route::post('logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('forgot-password', [AuthController::class, 'showForgotPassword'])->name('password.request');
-Route::post('forgot-password', [AuthController::class, 'sendResetLinkEmail'])->name('password.email');
+Route::post('forgot-password', [AuthController::class, 'sendResetLinkEmail'])->middleware('throttle:10,1')->name('password.email');
 
 // Authenticated CRM Core & V0.2/V0.3/V0.4 Routes
 Route::middleware(['auth'])->group(function () {
@@ -271,6 +276,21 @@ Route::middleware(['auth'])->group(function () {
     // V0.9 Central Reporting, Analytics & Executive Dashboard Routes
     Route::middleware(['auth'])->group(function () {
         Route::get('/reports', [ReportingController::class, 'index'])->name('reports.index');
-        Route::get('/reports/export', [ReportingController::class, 'export'])->name('reports.export');
+        Route::get('/reports/export', [ReportingController::class, 'export'])->middleware('throttle:30,1')->name('reports.export');
+    });
+
+    // V1.0 Global CRM Search Endpoint
+    Route::get('/search', [GlobalSearchController::class, 'index'])->name('global.search');
+
+    // V1.0 API v1 Sanitized Resources Foundation
+    Route::prefix('api/v1')->middleware(['auth', 'throttle:60,1'])->group(function () {
+        Route::get('/leads', [LeadApiController::class, 'index']);
+        Route::get('/leads/{lead}', [LeadApiController::class, 'show']);
+        Route::get('/projects', [ProjectApiController::class, 'index']);
+        Route::get('/projects/{project}', [ProjectApiController::class, 'show']);
+        Route::get('/bookings', [BookingApiController::class, 'index']);
+        Route::get('/bookings/{booking}', [BookingApiController::class, 'show']);
+        Route::get('/customers', [CustomerApiController::class, 'index']);
+        Route::get('/customers/{customer}', [CustomerApiController::class, 'show']);
     });
 });
