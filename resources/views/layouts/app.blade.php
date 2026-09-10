@@ -133,6 +133,20 @@
                 <a class="nav-link {{ request()->routeIs('communication.optouts.*') ? 'active' : '' }}" href="{{ route('communication.optouts.index') }}">
                     <i class="bi bi-slash-circle-fill"></i> Customer Opt-Outs
                 </a>
+
+                <div class="px-3 my-2 text-uppercase text-muted fw-bold" style="font-size: 0.65rem; letter-spacing: 1px;">Brokers & Channel Partners</div>
+                <a class="nav-link {{ request()->routeIs('brokers.partners.*') ? 'active' : '' }}" href="{{ route('brokers.partners.index') }}">
+                    <i class="bi bi-person-badge-fill"></i> Partner Registry
+                </a>
+                <a class="nav-link {{ request()->routeIs('brokers.rules.*') ? 'active' : '' }}" href="{{ route('brokers.rules.index') }}">
+                    <i class="bi bi-diagram-3-fill"></i> Commission Schemes
+                </a>
+                <a class="nav-link {{ request()->routeIs('brokers.commissions.*') ? 'active' : '' }}" href="{{ route('brokers.commissions.index') }}">
+                    <i class="bi bi-cash-coin"></i> Commissions & Payouts
+                </a>
+                <a class="nav-link {{ request()->routeIs('brokers.reports.*') ? 'active' : '' }}" href="{{ route('brokers.reports.index') }}">
+                    <i class="bi bi-graph-up-arrow"></i> Partner Performance
+                </a>
             </nav>
         </div>
 

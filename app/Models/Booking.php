@@ -16,6 +16,7 @@ class Booking extends Model
         'booking_number',
         'unit_id',
         'customer_id',
+        'channel_partner_id',
         'project_id',
         'lead_id',
         'unit_ids',
@@ -86,6 +87,11 @@ class Booking extends Model
     public function customer()
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function channelPartner()
+    {
+        return $this->belongsTo(ChannelPartner::class);
     }
 
     public function salesAgent()

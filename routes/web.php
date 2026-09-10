@@ -27,6 +27,10 @@ use App\Http\Controllers\SiteVisitController;
 use App\Http\Controllers\UnitController;
 use App\Http\Controllers\AutomationController;
 use App\Http\Controllers\CampaignController;
+use App\Http\Controllers\BrokerReportController;
+use App\Http\Controllers\ChannelPartnerController;
+use App\Http\Controllers\CommissionController;
+use App\Http\Controllers\CommissionStructureController;
 use App\Http\Controllers\CommunicationLogController;
 use App\Http\Controllers\CommunicationTemplateController;
 use App\Http\Controllers\OptOutController;
@@ -239,5 +243,27 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/communication/logs', [CommunicationLogController::class, 'index'])->name('communication.logs.index');
         Route::get('/communication/opt-outs', [OptOutController::class, 'index'])->name('communication.optouts.index');
         Route::post('/communication/opt-outs', [OptOutController::class, 'store'])->name('communication.optouts.store');
+    });
+
+    // V0.8 Broker & Channel Partner Management Routes
+    Route::middleware(['auth'])->group(function () {
+        // Channel Partner Registry
+        Route::get('/brokers/partners', [ChannelPartnerController::class, 'index'])->name('brokers.partners.index');
+        Route::get('/brokers/partners/create', [ChannelPartnerController::class, 'create'])->name('brokers.partners.create');
+        Route::post('/brokers/partners', [ChannelPartnerController::class, 'store'])->name('brokers.partners.store');
+        Route::get('/brokers/partners/{partner}', [ChannelPartnerController::class, 'show'])->name('brokers.partners.show');
+        Route::post('/brokers/partners/{partner}/contacts', [ChannelPartnerController::class, 'addContact'])->name('brokers.partners.add-contact');
+
+        // Commission Schemes & Calculation Engine
+        Route::get('/brokers/rules', [CommissionStructureController::class, 'index'])->name('brokers.rules.index');
+        Route::post('/brokers/rules', [CommissionStructureController::class, 'store'])->name('brokers.rules.store');
+
+        // Commission Approvals & Payouts Ledger
+        Route::get('/brokers/commissions', [CommissionController::class, 'index'])->name('brokers.commissions.index');
+        Route::post('/brokers/commissions/{commission}/approve', [CommissionController::class, 'approve'])->name('brokers.commissions.approve');
+        Route::post('/brokers/payouts', [CommissionController::class, 'payout'])->name('brokers.payouts.store');
+
+        // Broker Analytics & Reports
+        Route::get('/brokers/reports', [BrokerReportController::class, 'index'])->name('brokers.reports.index');
     });
 });
