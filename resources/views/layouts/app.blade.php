@@ -158,18 +158,18 @@
         <div class="p-3 border-top border-secondary border-opacity-25">
             <div class="d-flex align-items-center justify-content-between">
                 <a href="{{ route('profile.edit') }}" class="d-flex align-items-center gap-2 text-decoration-none">
-                    <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center" style="width:36px; height:36px;">
-                        <i class="bi bi-person-fill"></i>
+                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width:36px; height:36px; font-size: 0.9rem;">
+                        {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
                     </div>
                     <div style="line-height:1.2;">
                         <div class="text-white fw-bold small">{{ auth()->user()->name }}</div>
                         <small class="text-capitalize text-secondary" style="font-size:0.7rem;">{{ str_replace('_', ' ', auth()->user()->role) }}</small>
                     </div>
                 </a>
-                <form action="{{ route('logout') }}" method="POST">
+                <form action="{{ route('logout') }}" method="POST" class="m-0">
                     @csrf
-                    <button type="submit" class="btn btn-sm btn-outline-light border-0" title="Logout">
-                        <i class="bi bi-box-arrow-right fs-5 text-secondary"></i>
+                    <button type="submit" class="btn btn-sm btn-outline-danger border-0 d-flex align-items-center gap-1 text-danger p-1" title="Logout">
+                        <i class="bi bi-box-arrow-right fs-5"></i>
                     </button>
                 </form>
             </div>
@@ -226,6 +226,39 @@
             <span class="badge bg-light text-dark border px-3 py-2">
                 <i class="bi bi-building text-primary me-1"></i> {{ auth()->user()->company->name ?? 'Default Builder' }}
             </span>
+
+            <!-- Top Navbar User Dropdown -->
+            <div class="dropdown">
+                <button class="btn btn-light btn-sm border d-flex align-items-center gap-2 dropdown-toggle px-2 py-1 text-dark shadow-sm" type="button" id="userMenuDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width:30px; height:30px; font-size: 0.85rem;">
+                        {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                    </div>
+                    <div class="text-start d-none d-md-block" style="line-height:1.1;">
+                        <div class="fw-bold small">{{ auth()->user()->name }}</div>
+                        <small class="text-muted" style="font-size:0.65rem;">{{ str_replace('_', ' ', auth()->user()->role) }}</small>
+                    </div>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2 p-2" aria-labelledby="userMenuDropdown" style="min-width: 210px; z-index: 1060;">
+                    <li class="px-2 py-2 bg-light rounded mb-2">
+                        <div class="fw-bold text-dark small">{{ auth()->user()->name }}</div>
+                        <small class="text-muted" style="font-size: 0.75rem;">{{ auth()->user()->email }}</small>
+                    </li>
+                    <li>
+                        <a class="dropdown-item rounded small d-flex align-items-center gap-2 py-2" href="{{ route('profile.edit') }}">
+                            <i class="bi bi-person-gear text-primary"></i> Edit Profile
+                        </a>
+                    </li>
+                    <li><hr class="dropdown-divider my-1"></li>
+                    <li>
+                        <form action="{{ route('logout') }}" method="POST" class="m-0">
+                            @csrf
+                            <button type="submit" class="dropdown-item rounded small d-flex align-items-center gap-2 py-2 text-danger fw-semibold">
+                                <i class="bi bi-box-arrow-right text-danger fs-6"></i> Logout
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
         </div>
     </div>
 

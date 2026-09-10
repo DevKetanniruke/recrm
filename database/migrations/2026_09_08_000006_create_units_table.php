@@ -15,7 +15,7 @@ return new class extends Migration
             $table->foreignId('building_id')->constrained('buildings')->onDelete('cascade');
             $table->foreignId('wing_id')->constrained('wings')->onDelete('cascade');
             $table->foreignId('floor_id')->constrained('floors')->onDelete('cascade');
-            $table->foreignId('unit_type_id')->nullable()->constrained('unit_types')->onDelete('set null');
+            $table->unsignedBigInteger('unit_type_id')->nullable()->index();
             
             $table->string('unit_number');
             $table->string('unit_code')->nullable();

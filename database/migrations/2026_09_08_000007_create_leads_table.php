@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('location', 255)->nullable();
             
             $table->string('source', 50)->default('Website');
-            $table->foreignId('source_id')->nullable()->constrained('lead_sources')->onDelete('set null');
+            $table->unsignedBigInteger('source_id')->nullable()->index();
             $table->string('campaign', 100)->nullable();
             
             $table->foreignId('project_id')->nullable()->constrained('projects')->onDelete('set null');
@@ -34,10 +34,10 @@ return new class extends Migration
             
             $table->string('priority', 20)->default('Medium');
             $table->string('status', 50)->default('New');
-            $table->foreignId('status_id')->nullable()->constrained('lead_statuses')->onDelete('set null');
+            $table->unsignedBigInteger('status_id')->nullable()->index();
             
             $table->foreignId('assigned_to')->nullable()->constrained('users')->onDelete('set null');
-            $table->foreignId('assigned_team_id')->nullable()->constrained('teams')->onDelete('set null');
+            $table->unsignedBigInteger('assigned_team_id')->nullable()->index();
             
             $table->text('notes')->nullable();
             $table->foreignId('merged_into_lead_id')->nullable()->constrained('leads')->onDelete('set null');
