@@ -24,6 +24,7 @@ h1, h2, h3, h4, h5, h6, .brand-font {
     font-weight: 700;
 }
 
+/* Sidebar Base */
 .sidebar {
     width: 260px;
     height: 100vh;
@@ -32,20 +33,22 @@ h1, h2, h3, h4, h5, h6, .brand-font {
     left: 0;
     background-color: var(--crm-sidebar-bg);
     color: #94a3b8;
-    z-index: 1000;
-    transition: all 0.3s ease;
+    z-index: 1050;
+    transition: transform 0.3s ease-in-out;
     border-right: 1px solid rgba(255, 255, 255, 0.05);
+    overflow-y: auto;
 }
 
 .sidebar .nav-link {
     color: #94a3b8;
-    padding: 0.75rem 1.25rem;
+    padding: 0.65rem 1rem;
     font-weight: 500;
     border-radius: 0.5rem;
-    margin: 0.2rem 0.75rem;
+    margin: 0.15rem 0.5rem;
     display: flex;
     align-items: center;
     gap: 0.75rem;
+    font-size: 0.88rem;
     transition: all 0.2s ease;
 }
 
@@ -60,24 +63,77 @@ h1, h2, h3, h4, h5, h6, .brand-font {
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
-.main-content {
-    margin-left: 260px;
-    padding: 2rem;
-    min-height: 100vh;
+/* Backdrop for Mobile Sidebar */
+.sidebar-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(3px);
+    z-index: 1040;
+    display: none;
 }
 
-.top-navbar {
-    background: #ffffff;
-    border-bottom: 1px solid #e2e8f0;
-    padding: 0.85rem 2rem;
-    margin-left: 260px;
+.sidebar-backdrop.show {
+    display: block;
+}
+
+/* Desktop Styles */
+@media (min-width: 992px) {
+    .sidebar {
+        transform: none !important;
+    }
+    .main-content {
+        margin-left: 260px;
+        padding: 2rem;
+        min-height: 100vh;
+    }
+    .top-navbar {
+        background: #ffffff;
+        border-bottom: 1px solid #e2e8f0;
+        padding: 0.85rem 2rem;
+        margin-left: 260px;
+    }
+}
+
+/* Mobile & Tablet Styles */
+@media (max-width: 991.98px) {
+    .sidebar {
+        transform: translateX(-100%);
+        width: 280px;
+    }
+    .sidebar.show {
+        transform: translateX(0);
+    }
+    .main-content {
+        margin-left: 0 !important;
+        padding: 1rem !important;
+        min-height: 100vh;
+    }
+    .top-navbar {
+        background: #ffffff;
+        border-bottom: 1px solid #e2e8f0;
+        margin-left: 0 !important;
+        padding: 0.75rem 1rem !important;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .top-navbar h5 {
+        font-size: 0.95rem;
+    }
+    .main-content {
+        padding: 0.75rem !important;
+    }
 }
 
 .stat-card {
     background: #ffffff;
     border-radius: 1rem;
     border: 1px solid #e2e8f0;
-    padding: 1.5rem;
+    padding: 1.25rem;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -88,13 +144,13 @@ h1, h2, h3, h4, h5, h6, .brand-font {
 }
 
 .stat-icon {
-    width: 48px;
-    height: 48px;
+    width: 42px;
+    height: 42px;
     border-radius: 0.75rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.5rem;
+    font-size: 1.25rem;
 }
 
 /* Status Badges */
@@ -116,3 +172,4 @@ h1, h2, h3, h4, h5, h6, .brand-font {
 .inventory-cell:hover {
     transform: scale(1.04);
 }
+

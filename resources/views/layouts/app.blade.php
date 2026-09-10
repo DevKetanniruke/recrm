@@ -176,20 +176,28 @@
         </div>
     </div>
 
+    <!-- Mobile Sidebar Backdrop -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
     <!-- Top Navbar -->
-    <div class="top-navbar d-flex align-items-center justify-content-between">
-        <div>
-            <h5 class="mb-0 brand-font">@yield('page-title', 'Dashboard')</h5>
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb mb-0" style="font-size: 0.78rem;">
-                    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}" class="text-decoration-none">Home</a></li>
-                    <li class="breadcrumb-item active">@yield('title', 'Dashboard')</li>
-                </ol>
-            </nav>
+    <div class="top-navbar d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <div class="d-flex align-items-center gap-2">
+            <button class="btn btn-light border d-lg-none p-1 px-2 shadow-sm me-1" type="button" id="sidebarToggle" title="Toggle Navigation Menu">
+                <i class="bi bi-list fs-3 text-dark"></i>
+            </button>
+            <div>
+                <h5 class="mb-0 brand-font">@yield('page-title', 'Dashboard')</h5>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0" style="font-size: 0.78rem;">
+                        <li class="breadcrumb-item"><a href="{{ route('dashboard') }}" class="text-decoration-none">Home</a></li>
+                        <li class="breadcrumb-item active">@yield('title', 'Dashboard')</li>
+                    </ol>
+                </nav>
+            </div>
         </div>
-        <div class="d-flex align-items-center gap-3">
+        <div class="d-flex align-items-center gap-2 gap-md-3 ms-auto">
             <!-- Global CRM Search Input -->
-            <div class="position-relative" style="width: 280px;" x-data="{ query: '', results: [], loading: false, show: false }" @click.outside="show = false">
+            <div class="position-relative" style="max-width: 240px;" x-data="{ query: '', results: [], loading: false, show: false }" @click.outside="show = false">
                 <div class="input-group input-group-sm">
                     <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-secondary"></i></span>
                     <input type="text" x-model="query" @input.debounce.300ms="
@@ -199,7 +207,7 @@
                                 .then(res => res.json())
                                 .then(data => { results = data.results; loading = false; });
                         } else { results = []; show = false; }
-                    " placeholder="Search Leads, Bookings, Units..." class="form-control border-start-0 bg-white">
+                    " placeholder="Search..." class="form-control border-start-0 bg-white">
                 </div>
 
                 <!-- Live Search Dropdown -->
@@ -223,7 +231,7 @@
                 </div>
             </div>
 
-            <span class="badge bg-light text-dark border px-3 py-2">
+            <span class="badge bg-light text-dark border px-2 px-md-3 py-2 d-none d-sm-inline-block">
                 <i class="bi bi-building text-primary me-1"></i> {{ auth()->user()->company->name ?? 'Default Builder' }}
             </span>
 
@@ -295,6 +303,45 @@
 
     <!-- Bootstrap 5 Bundle JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggleBtn = document.getElementById('sidebarToggle');
+            const sidebar = document.querySelector('.sidebar');
+            const backdrop = document.getElementById('sidebarBackdrop');
+
+            if (toggleBtn && sidebar && backdrop) {
+                function openSidebar() {
+                    sidebar.classList.add('show');
+                    backdrop.classList.add('show');
+                    document.body.style.overflow = 'hidden';
+                }
+                function closeSidebar() {
+                    sidebar.classList.remove('show');
+                    backdrop.classList.remove('show');
+                    document.body.style.overflow = '';
+                }
+
+                toggleBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    if (sidebar.classList.contains('show')) {
+                        closeSidebar();
+                    } else {
+                        openSidebar();
+                    }
+                });
+
+                backdrop.addEventListener('click', closeSidebar);
+
+                sidebar.querySelectorAll('.nav-link').forEach(link => {
+                    link.addEventListener('click', function() {
+                        if (window.innerWidth < 992) {
+                            closeSidebar();
+                        }
+                    });
+                });
+            }
+        });
+    </script>
     @stack('scripts')
 </body>
 </html>

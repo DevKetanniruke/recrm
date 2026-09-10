@@ -5,13 +5,13 @@
 
 @section('content')
 <!-- Header Banner with Quick Reports Link -->
-<div class="d-flex align-items-center justify-content-between mb-4 bg-white p-3 rounded-4 shadow-sm border">
+<div class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3 mb-4 bg-white p-3 rounded-4 shadow-sm border">
     <div>
         <h5 class="fw-bold mb-1 text-dark brand-font"><i class="bi bi-speedometer2 text-primary me-2"></i> Real Estate Executive Control Center</h5>
         <p class="text-secondary small mb-0">Real-time KPI metrics, conversion funnels, financial collections, and inventory velocity.</p>
     </div>
     <div>
-        <a href="{{ route('reports.index') }}" class="btn btn-primary btn-sm px-3 shadow-sm rounded-pill">
+        <a href="{{ route('reports.index') }}" class="btn btn-primary btn-sm px-3 shadow-sm rounded-pill text-nowrap">
             <i class="bi bi-bar-chart-fill me-1"></i> Open Central Reports Hub
         </a>
     </div>

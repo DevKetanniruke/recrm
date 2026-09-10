@@ -37,8 +37,8 @@ class ReportingController extends Controller
         $executives = User::where('company_id', $companyId)->get();
         $unitTypes = UnitType::where('company_id', $companyId)->get();
         $channelPartners = ChannelPartner::where('company_id', $companyId)->get();
-        $buildings = Building::where('company_id', $companyId)->get();
-        $wings = Wing::where('company_id', $companyId)->get();
+        $buildings = Building::whereHas('project', fn($q) => $q->where('company_id', $companyId))->get();
+        $wings = Wing::whereHas('building.project', fn($q) => $q->where('company_id', $companyId))->get();
 
         $reportData = [];
 
