@@ -63,6 +63,15 @@ Route::middleware(['auth'])->group(function () {
         return view('pitch.pdf');
     })->name('pitch.pdf');
 
+    // One-click live server migration & cache runner helper
+    Route::get('/run-live-migrations', function () {
+        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+        \Illuminate\Support\Facades\Artisan::call('config:clear');
+        \Illuminate\Support\Facades\Artisan::call('route:clear');
+        \Illuminate\Support\Facades\Artisan::call('view:clear');
+        return '<div style="font-family:sans-serif; padding:40px; text-align:center;"><h2 style="color:#10b981;">✅ Live Server Migrations & Caches Cleared Successfully!</h2><p>The new Site & Material Management tables have been created on your live database.</p><a href="/projects">Go back to Projects</a></div>';
+    })->name('live-migrations');
+
     // V0.1 User Management & Profile
     Route::middleware(['permission:users.view'])->group(function () {
         Route::get('/users', [UserController::class, 'index'])->name('users.index');
