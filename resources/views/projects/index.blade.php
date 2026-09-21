@@ -40,9 +40,12 @@
                         <div class="col-12"><strong>Project Manager:</strong> {{ $project->projectManager->name ?? 'Unassigned' }}</div>
                     </div>
                 </div>
-                <div class="card-footer bg-white border-0 pt-0 pb-3">
-                    <a href="{{ route('projects.show', $project->id) }}" class="btn btn-outline-primary w-100 btn-sm fw-semibold">
-                        View Project Details & Towers <i class="bi bi-arrow-right ms-1"></i>
+                <div class="card-footer bg-white border-0 pt-0 pb-3 d-flex gap-2">
+                    <a href="{{ route('projects.show', $project->id) }}" class="btn btn-outline-primary flex-fill btn-sm fw-semibold">
+                        Details & Towers <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                    <a href="{{ route('projects.site-management', $project->id) }}" class="btn btn-primary flex-fill btn-sm fw-semibold shadow-sm">
+                        <i class="bi bi-tools me-1"></i> Site & Materials
                     </a>
                 </div>
             </div>

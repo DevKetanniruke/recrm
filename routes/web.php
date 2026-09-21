@@ -21,6 +21,7 @@ use App\Http\Controllers\PaymentDemandController;
 use App\Http\Controllers\PaymentPlanController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\ProjectSiteManagementController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\SiteVisitController;
@@ -58,6 +59,9 @@ Route::middleware(['auth'])->group(function () {
     });
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->middleware('permission:dashboard.view')->name('dashboard');
+    Route::get('/pitch-pdf', function () {
+        return view('pitch.pdf');
+    })->name('pitch.pdf');
 
     // V0.1 User Management & Profile
     Route::middleware(['permission:users.view'])->group(function () {
@@ -103,6 +107,22 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['permission:projects.view'])->group(function () {
         Route::resource('projects', ProjectController::class);
         Route::post('/buildings', [BuildingController::class, 'store'])->name('buildings.store');
+
+        // Site & Material Management Module Routes
+        Route::get('/projects/{project}/site-management', [ProjectSiteManagementController::class, 'index'])->name('projects.site-management');
+        Route::post('/projects/{project}/materials', [ProjectSiteManagementController::class, 'storeMaterial'])->name('projects.materials.store');
+        Route::post('/projects/{project}/material-categories', [ProjectSiteManagementController::class, 'storeMaterialCategory'])->name('projects.material-categories.store');
+        Route::delete('/projects/{project}/materials/{material}', [ProjectSiteManagementController::class, 'destroyMaterial'])->name('projects.materials.destroy');
+        
+        Route::post('/projects/{project}/labour', [ProjectSiteManagementController::class, 'storeLabour'])->name('projects.labour.store');
+        Route::delete('/projects/{project}/labour/{labour}', [ProjectSiteManagementController::class, 'destroyLabour'])->name('projects.labour.destroy');
+
+        Route::post('/projects/{project}/vendors', [ProjectSiteManagementController::class, 'storeVendor'])->name('projects.vendors.store');
+        Route::post('/projects/{project}/vendor-payments', [ProjectSiteManagementController::class, 'storeVendorPayment'])->name('projects.vendor-payments.store');
+        Route::delete('/projects/{project}/vendor-payments/{payment}', [ProjectSiteManagementController::class, 'destroyVendorPayment'])->name('projects.vendor-payments.destroy');
+
+        Route::get('/projects/{project}/site-management/export-excel', [ProjectSiteManagementController::class, 'exportExcel'])->name('projects.site-management.export-excel');
+        Route::get('/projects/{project}/site-management/export-pdf', [ProjectSiteManagementController::class, 'exportPdf'])->name('projects.site-management.export-pdf');
     });
 
     Route::middleware(['permission:inventory.view'])->group(function () {

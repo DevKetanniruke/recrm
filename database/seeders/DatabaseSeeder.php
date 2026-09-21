@@ -574,5 +574,84 @@ class DatabaseSeeder extends Seeder
             'status' => 'Verified',
             'received_by' => $accountant->id,
         ]);
+
+        // 13. Seed Site Materials, Labour & Vendor Management
+        $mc1 = \App\Models\MaterialCategory::create([
+            'company_id' => $company->id,
+            'name' => 'Bandhkam (Cement & Crusher)',
+        ]);
+        $mc2 = \App\Models\MaterialCategory::create([
+            'company_id' => $company->id,
+            'name' => 'Steel & Rebar',
+        ]);
+
+        $vc1 = \App\Models\VendorCategory::create([
+            'company_id' => $company->id,
+            'name' => 'Plumbing Contractors',
+        ]);
+        $vc2 = \App\Models\VendorCategory::create([
+            'company_id' => $company->id,
+            'name' => 'Electrical Contractors',
+        ]);
+
+        $v1 = \App\Models\Vendor::create([
+            'company_id' => $company->id,
+            'category_id' => $vc1->id,
+            'vendor_name' => 'Apex Plumbing & Sanitation',
+            'contact_person' => 'Rajesh Sharma',
+            'mobile' => '+1 (555) 887-1122',
+            'gst_number' => '27ABCDE1234F1Z5',
+        ]);
+
+        \App\Models\MaterialEntry::create([
+            'company_id' => $company->id,
+            'project_id' => $project1->id,
+            'building_id' => $building1->id,
+            'category_id' => $mc1->id,
+            'material_name' => 'Ultratech PPC Cement',
+            'quantity' => 300,
+            'unit_of_measure' => 'Bags',
+            'unit_cost' => 380.00,
+            'entry_date' => now()->subDays(2)->toDateString(),
+            'supplier_vendor_id' => $v1->id,
+            'invoice_number' => 'INV-9921',
+            'created_by' => $admin->id,
+        ]);
+
+        \App\Models\LabourEntry::create([
+            'company_id' => $company->id,
+            'project_id' => $project1->id,
+            'building_id' => $building1->id,
+            'labour_identifier' => 'Shuttering Team Alpha',
+            'work_category' => 'Shuttering',
+            'days_worked' => 1.5,
+            'daily_wage_rate' => 850.00,
+            'work_date' => now()->subDays(1)->toDateString(),
+            'supervisor_user_id' => $admin->id,
+            'payment_status' => 'Pending',
+        ]);
+
+        \App\Models\VendorPayment::create([
+            'company_id' => $company->id,
+            'project_id' => $project1->id,
+            'vendor_id' => $v1->id,
+            'payment_mode' => 'Cash',
+            'amount' => 20000.00,
+            'invoice_bill_amount' => 50000.00,
+            'payment_date' => now()->subDays(3)->toDateString(),
+            'created_by' => $admin->id,
+        ]);
+
+        \App\Models\VendorPayment::create([
+            'company_id' => $company->id,
+            'project_id' => $project1->id,
+            'vendor_id' => $v1->id,
+            'payment_mode' => 'Cheque',
+            'amount' => 15000.00,
+            'cheque_number' => 'CHQ-882109',
+            'bank_name' => 'HDFC Bank',
+            'payment_date' => now()->subDays(1)->toDateString(),
+            'created_by' => $admin->id,
+        ]);
     }
 }
