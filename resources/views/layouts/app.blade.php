@@ -28,7 +28,7 @@
                 </div>
                 <div>
                     <h6 class="mb-0 text-white brand-font fw-bold">PropFlow CRM</h6>
-                    <small class="text-secondary" style="font-size:0.75rem;">v0.4 Sales & Negotiation</small>
+                    <small class="text-white-50" style="font-size:0.75rem;">v0.4 Sales & Negotiation</small>
                 </div>
             </div>
             
@@ -37,7 +37,7 @@
                     <i class="bi bi-grid-1x2-fill"></i> Dashboard
                 </a>
 
-                <div class="px-3 my-2 text-uppercase text-muted fw-bold" style="font-size: 0.65rem; letter-spacing: 1px;">Sales & Pipeline</div>
+                <div class="sidebar-heading">Sales & Pipeline</div>
                 @if(auth()->user()->hasPermissionTo('leads.view'))
                     <a class="nav-link {{ request()->routeIs('leads.index') || request()->routeIs('leads.show') || request()->routeIs('leads.create') || request()->routeIs('leads.edit') ? 'active' : '' }}" href="{{ route('leads.index') }}">
                         <i class="bi bi-person-lines-fill"></i> Lead Pipeline
@@ -67,7 +67,7 @@
                     @endif
                 @endif
 
-                <div class="px-3 my-2 text-uppercase text-muted fw-bold" style="font-size: 0.65rem; letter-spacing: 1px;">Project & Inventory</div>
+                <div class="sidebar-heading">Project & Inventory</div>
                 @if(auth()->user()->hasPermissionTo('projects.view'))
                     <a class="nav-link {{ request()->routeIs('projects.*') ? 'active' : '' }}" href="{{ route('projects.index') }}">
                         <i class="bi bi-buildings-fill"></i> Projects Portal
@@ -83,7 +83,7 @@
                     </a>
                 @endif
 
-                <div class="px-3 my-2 text-uppercase text-muted fw-bold" style="font-size: 0.65rem; letter-spacing: 1px;">Core Administration</div>
+                <div class="sidebar-heading">Core Administration</div>
                 
                 @if(auth()->user()->hasPermissionTo('users.view'))
                     <a class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}" href="{{ route('users.index') }}">
@@ -107,7 +107,7 @@
                     <i class="bi bi-gear-fill"></i> System Settings
                 </a>
 
-                <div class="px-3 my-2 text-uppercase text-muted fw-bold" style="font-size: 0.65rem; letter-spacing: 1px;">Finance & Closures</div>
+                <div class="sidebar-heading">Finance & Closures</div>
                 @if(auth()->user()->hasPermissionTo('bookings.view'))
                     <a class="nav-link {{ request()->routeIs('bookings.*') ? 'active' : '' }}" href="{{ route('bookings.index') }}">
                         <i class="bi bi-file-earmark-check-fill"></i> Unit Bookings
@@ -120,7 +120,7 @@
                     </a>
                 @endif
 
-                <div class="px-3 my-2 text-uppercase text-muted fw-bold" style="font-size: 0.65rem; letter-spacing: 1px;">Marketing & Automation</div>
+                <div class="sidebar-heading">Marketing & Automation</div>
                 <a class="nav-link {{ request()->routeIs('communication.templates.*') ? 'active' : '' }}" href="{{ route('communication.templates.index') }}">
                     <i class="bi bi-file-earmark-code"></i> Templates Engine
                 </a>
@@ -137,7 +137,7 @@
                     <i class="bi bi-slash-circle-fill"></i> Customer Opt-Outs
                 </a>
 
-                <div class="px-3 my-2 text-uppercase text-muted fw-bold" style="font-size: 0.65rem; letter-spacing: 1px;">Brokers & Channel Partners</div>
+                <div class="sidebar-heading">Brokers & Channel Partners</div>
                 <a class="nav-link {{ request()->routeIs('brokers.partners.*') ? 'active' : '' }}" href="{{ route('brokers.partners.index') }}">
                     <i class="bi bi-person-badge-fill"></i> Partner Registry
                 </a>
@@ -151,7 +151,7 @@
                     <i class="bi bi-graph-up-arrow"></i> Partner Performance
                 </a>
 
-                <div class="px-3 my-2 text-uppercase text-muted fw-bold" style="font-size: 0.65rem; letter-spacing: 1px;">Reporting & Analytics</div>
+                <div class="sidebar-heading">Reporting & Analytics</div>
                 <a class="nav-link {{ request()->routeIs('reports.*') ? 'active' : '' }}" href="{{ route('reports.index') }}">
                     <i class="bi bi-bar-chart-line-fill"></i> Central Reports Hub
                 </a>
@@ -166,7 +166,7 @@
                     </div>
                     <div style="line-height:1.2;">
                         <div class="text-white fw-bold small">{{ auth()->user()->name }}</div>
-                        <small class="text-capitalize text-secondary" style="font-size:0.7rem;">{{ str_replace('_', ' ', auth()->user()->role) }}</small>
+                        <small class="text-capitalize text-white-50" style="font-size:0.7rem;">{{ str_replace('_', ' ', auth()->user()->role) }}</small>
                     </div>
                 </a>
                 <form action="{{ route('logout') }}" method="POST" class="m-0">

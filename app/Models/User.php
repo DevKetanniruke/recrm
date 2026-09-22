@@ -92,6 +92,7 @@ class User extends Authenticatable
             'sales_executive' => ['dashboard.view', 'leads.view', 'leads.create', 'leads.edit', 'projects.view', 'inventory.view', 'bookings.view'],
             'telecaller' => ['dashboard.view', 'leads.view', 'leads.create', 'leads.edit'],
             'accountant' => ['dashboard.view', 'payments.view', 'payments.create', 'bookings.view'],
+            'site_supervisor' => ['dashboard.view', 'projects.view', 'site_management.view', 'site_management.create', 'site_management.reports'],
         ];
 
         if (isset($rolePermissionsMap[$this->role]) && in_array($permissionSlug, $rolePermissionsMap[$this->role])) {
@@ -115,6 +116,11 @@ class User extends Authenticatable
     public function isAdmin(): bool
     {
         return in_array($this->role, ['super_admin', 'admin']);
+    }
+
+    public function isSiteSupervisor(): bool
+    {
+        return $this->role === 'site_supervisor';
     }
 
     public function isManager(): bool

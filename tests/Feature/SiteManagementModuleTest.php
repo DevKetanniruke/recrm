@@ -173,4 +173,66 @@ class SiteManagementModuleTest extends TestCase
         $pdfResponse->assertStatus(200);
         $pdfResponse->assertSee('Super Plumbing Solutions');
     }
+
+    public function test_site_supervisor_can_add_material_and_labour_without_entering_prices()
+    {
+        $supervisor = User::create([
+            'company_id' => $this->company->id,
+            'name' => 'John Supervisor',
+            'email' => 'supervisor@apexinfra.com',
+            'password' => bcrypt('password123'),
+            'role' => 'site_supervisor',
+            'status' => 'Active',
+        ]);
+
+        $this->assertTrue($supervisor->isSiteSupervisor());
+        $this->assertTrue($supervisor->hasPermissionTo('site_management.create'));
+
+        // Add Material without unit_cost
+        $matResponse = $this->actingAs($supervisor)->post(route('projects.materials.store', $this->project->id), [
+            'category_id' => $this->materialCategory->id,
+            'material_name' => 'Red Bricks 9 Inch',
+            'quantity' => 1500,
+            'unit_of_measure' => 'Pieces',
+            'entry_date' => date('Y-m-d'),
+        ]);
+
+        $matResponse->assertRedirect(route('projects.site-management', [$this->project->id, 'tab' => 'materials']));
+
+        $this->assertDatabaseHas('material_entries', [
+            'project_id' => $this->project->id,
+            'material_name' => 'Red Bricks 9 Inch',
+            'quantity' => 1500,
+            'unit_cost' => 0.00,
+            'total_cost' => 0.00,
+        ]);
+
+        // Add Labour without daily_wage_rate
+        $labResponse = $this->actingAs($supervisor)->post(route('projects.labour.store', $this->project->id), [
+            'labour_identifier' => 'Helper Batch 1',
+            'work_category' => 'Helper',
+            'days_worked' => 2.0,
+            'work_date' => date('Y-m-d'),
+            'payment_status' => 'Pending',
+        ]);
+
+        $labResponse->assertRedirect(route('projects.site-management', [$this->project->id, 'tab' => 'labour']));
+
+        $this->assertDatabaseHas('labour_entries', [
+            'project_id' => $this->project->id,
+            'labour_identifier' => 'Helper Batch 1',
+            'days_worked' => 2.0,
+            'daily_wage_rate' => 0.00,
+            'total_wages' => 0.00,
+        ]);
+    }
+
+    public function test_weekly_and_monthly_preset_report_filtering()
+    {
+        $responseWeek = $this->actingAs($this->admin)->get(route('projects.site-management', [$this->project->id, 'preset' => 'this_week']));
+        $responseWeek->assertStatus(200);
+
+        $responseMonth = $this->actingAs($this->admin)->get(route('projects.site-management', [$this->project->id, 'preset' => 'this_month']));
+        $responseMonth->assertStatus(200);
+    }
 }

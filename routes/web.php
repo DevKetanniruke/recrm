@@ -4,6 +4,7 @@ use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\BuildingController;
+use App\Http\Controllers\FloorController;
 use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\CoApplicantController;
 use App\Http\Controllers\CompanyController;
@@ -116,6 +117,12 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['permission:projects.view'])->group(function () {
         Route::resource('projects', ProjectController::class);
         Route::post('/buildings', [BuildingController::class, 'store'])->name('buildings.store');
+        Route::put('/buildings/{building}', [BuildingController::class, 'update'])->name('buildings.update');
+        Route::delete('/buildings/{building}', [BuildingController::class, 'destroy'])->name('buildings.destroy');
+
+        Route::post('/floors', [FloorController::class, 'store'])->name('floors.store');
+        Route::put('/floors/{floor}', [FloorController::class, 'update'])->name('floors.update');
+        Route::delete('/floors/{floor}', [FloorController::class, 'destroy'])->name('floors.destroy');
 
         // Site & Material Management Module Routes
         Route::get('/projects/{project}/site-management', [ProjectSiteManagementController::class, 'index'])->name('projects.site-management');

@@ -58,6 +58,9 @@ class AuthController extends Controller
                 ['name' => 'View Reports', 'slug' => 'reports.view', 'module' => 'reports'],
                 ['name' => 'Export Reports', 'slug' => 'reports.export', 'module' => 'reports'],
                 ['name' => 'View Inventory', 'slug' => 'inventory.view', 'module' => 'inventory'],
+                ['name' => 'View Site Management', 'slug' => 'site_management.view', 'module' => 'site_management'],
+                ['name' => 'Create Site Entries', 'slug' => 'site_management.create', 'module' => 'site_management'],
+                ['name' => 'View Site Reports', 'slug' => 'site_management.reports', 'module' => 'site_management'],
             ];
 
             foreach ($permissionsList as $p) {
@@ -69,6 +72,7 @@ class AuthController extends Controller
                 'super_admin' => 'Super Admin',
                 'admin' => 'Admin',
                 'management' => 'Management',
+                'site_supervisor' => 'Site Supervisor',
                 'sales_manager' => 'Sales Manager',
                 'sales_executive' => 'Sales Executive',
                 'telecaller' => 'Telecaller',

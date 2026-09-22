@@ -84,6 +84,14 @@
         <form action="{{ route('projects.site-management', $project->id) }}" method="GET" class="row g-2 align-items-center">
             <input type="hidden" name="tab" value="{{ $activeTab }}">
             
+            <div class="col-12 mb-2 d-flex align-items-center gap-2 flex-wrap">
+                <span class="small text-muted fw-bold me-1"><i class="bi bi-clock-history me-1"></i> Quick Presets:</span>
+                <a href="{{ route('projects.site-management', [$project->id, 'tab' => $activeTab, 'preset' => 'today']) }}" class="btn btn-xs btn-outline-secondary rounded-pill px-3 {{ isset($preset) && $preset === 'today' ? 'active bg-secondary text-white' : '' }}">Today</a>
+                <a href="{{ route('projects.site-management', [$project->id, 'tab' => $activeTab, 'preset' => 'this_week']) }}" class="btn btn-xs btn-outline-primary rounded-pill px-3 {{ isset($preset) && $preset === 'this_week' ? 'active bg-primary text-white' : '' }}">This Week</a>
+                <a href="{{ route('projects.site-management', [$project->id, 'tab' => $activeTab, 'preset' => 'this_month']) }}" class="btn btn-xs btn-outline-success rounded-pill px-3 {{ isset($preset) && $preset === 'this_month' ? 'active bg-success text-white' : '' }}">This Month</a>
+                <a href="{{ route('projects.site-management', [$project->id, 'tab' => $activeTab, 'preset' => 'last_month']) }}" class="btn btn-xs btn-outline-dark rounded-pill px-3 {{ isset($preset) && $preset === 'last_month' ? 'active bg-dark text-white' : '' }}">Last Month</a>
+            </div>
+
             <div class="col-md-3 col-6">
                 <label class="form-label small text-muted mb-1">Start Date</label>
                 <input type="date" name="start_date" value="{{ $startDate }}" class="form-control form-control-sm">
@@ -392,8 +400,8 @@
                 </div>
 
                 <div class="col-md-4">
-                    <label class="form-label small fw-bold">Unit Cost (₹) <span class="text-danger">*</span></label>
-                    <input type="number" step="0.01" name="unit_cost" placeholder="e.g. 380.00" class="form-control" required>
+                    <label class="form-label small fw-bold">Unit Cost (₹) <span class="badge bg-light text-muted border font-monospace">Optional</span></label>
+                    <input type="number" step="0.01" name="unit_cost" placeholder="e.g. 380.00 (Admin default)" class="form-control">
                 </div>
 
                 <div class="col-md-6">
@@ -465,8 +473,8 @@
                 </div>
 
                 <div class="col-md-6">
-                    <label class="form-label small fw-bold">Daily Wage Rate (₹) <span class="text-danger">*</span></label>
-                    <input type="number" step="0.01" name="daily_wage_rate" placeholder="e.g. 800.00" class="form-control" required>
+                    <label class="form-label small fw-bold">Daily Wage Rate (₹) <span class="badge bg-light text-muted border font-monospace">Optional</span></label>
+                    <input type="number" step="0.01" name="daily_wage_rate" placeholder="e.g. 800.00 (Admin default)" class="form-control">
                 </div>
 
                 <div class="col-md-6">

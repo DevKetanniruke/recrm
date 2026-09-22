@@ -80,4 +80,69 @@ class V02ProjectInventoryTest extends TestCase
         $this->assertEquals('Available', $unit->statusHistories->first()->previous_status);
         $this->assertEquals('Hold', $unit->statusHistories->first()->new_status);
     }
+
+    public function test_building_floor_creation_and_crud_management(): void
+    {
+        $company = Company::create(['name' => 'Apex Infra', 'slug' => 'apex']);
+        $admin = User::create([
+            'company_id' => $company->id,
+            'name' => 'Admin User',
+            'email' => 'admin2@test.com',
+            'password' => bcrypt('password'),
+            'role' => 'super_admin',
+            'status' => 'Active',
+        ]);
+        $this->actingAs($admin);
+
+        $project = Project::create([
+            'company_id' => $company->id,
+            'project_name' => 'Green Residency',
+            'project_type' => 'Mixed',
+        ]);
+
+        // 1. Create Building with 6 floors via controller POST
+        $response = $this->post(route('buildings.store'), [
+            'project_id' => $project->id,
+            'name' => 'Tower 6 Floors',
+            'total_floors' => 6,
+            'status' => 'Under Construction',
+        ]);
+
+        $response->assertRedirect();
+
+        $building = Building::where('name', 'Tower 6 Floors')->first();
+        $this->assertNotNull($building);
+        $this->assertEquals(6, $building->number_of_floors);
+
+        $mainWing = $building->wings()->first();
+        $this->assertNotNull($mainWing);
+        $this->assertEquals(6, $mainWing->floors()->count());
+
+        // 2. Add 7th floor using FloorController
+        $floorResp = $this->post(route('floors.store'), [
+            'wing_id' => $mainWing->id,
+            'floor_number' => 7,
+            'label' => '7th Floor Penthouse',
+        ]);
+
+        $floorResp->assertRedirect();
+        $this->assertEquals(7, $mainWing->floors()->count());
+
+        $floor7 = Floor::where('wing_id', $mainWing->id)->where('floor_number', 7)->first();
+        $this->assertNotNull($floor7);
+        $this->assertEquals('7th Floor Penthouse', $floor7->label);
+
+        // 3. Update Floor
+        $this->put(route('floors.update', $floor7->id), [
+            'floor_number' => 7,
+            'label' => 'Executive Suite 7',
+        ]);
+
+        $floor7->refresh();
+        $this->assertEquals('Executive Suite 7', $floor7->label);
+
+        // 4. Delete Floor
+        $this->delete(route('floors.destroy', $floor7->id));
+        $this->assertEquals(6, $mainWing->floors()->count());
+    }
 }

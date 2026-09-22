@@ -29,9 +29,25 @@ class ProjectSiteManagementController extends Controller
 
         $activeTab = $request->get('tab', 'summary');
 
-        // Filters
-        $startDate = $request->get('start_date');
-        $endDate = $request->get('end_date');
+        // Preset Date Filters (Today, Weekly, Monthly)
+        $preset = $request->get('preset');
+        if ($preset === 'today') {
+            $startDate = now()->format('Y-m-d');
+            $endDate = now()->format('Y-m-d');
+        } elseif ($preset === 'this_week') {
+            $startDate = now()->startOfWeek()->format('Y-m-d');
+            $endDate = now()->format('Y-m-d');
+        } elseif ($preset === 'this_month') {
+            $startDate = now()->startOfMonth()->format('Y-m-d');
+            $endDate = now()->format('Y-m-d');
+        } elseif ($preset === 'last_month') {
+            $startDate = now()->subMonth()->startOfMonth()->format('Y-m-d');
+            $endDate = now()->subMonth()->endOfMonth()->format('Y-m-d');
+        } else {
+            $startDate = $request->get('start_date');
+            $endDate = $request->get('end_date');
+        }
+
         $selectedCategoryId = $request->get('category_id');
         $selectedVendorId = $request->get('vendor_id');
         $selectedPaymentMode = $request->get('payment_mode');
@@ -163,6 +179,7 @@ class ProjectSiteManagementController extends Controller
             'categoryVendorSummary',
             'startDate',
             'endDate',
+            'preset',
             'selectedCategoryId',
             'selectedVendorId',
             'selectedPaymentMode',
@@ -182,7 +199,7 @@ class ProjectSiteManagementController extends Controller
             'material_name' => 'required|string|max:150',
             'quantity' => 'required|numeric|min:0.001',
             'unit_of_measure' => 'required|string|max:30',
-            'unit_cost' => 'required|numeric|min:0',
+            'unit_cost' => 'nullable|numeric|min:0',
             'entry_date' => 'required|date|before_or_equal:today',
             'building_id' => 'nullable|exists:buildings,id',
             'supplier_vendor_id' => 'nullable|exists:vendors,id',
@@ -193,7 +210,8 @@ class ProjectSiteManagementController extends Controller
         $validated['company_id'] = $companyId;
         $validated['project_id'] = $project->id;
         $validated['created_by'] = auth()->id();
-        $validated['total_cost'] = (float) $validated['quantity'] * (float) $validated['unit_cost'];
+        $validated['unit_cost'] = (float) ($validated['unit_cost'] ?? 0);
+        $validated['total_cost'] = (float) $validated['quantity'] * $validated['unit_cost'];
 
         MaterialEntry::create($validated);
 
@@ -230,7 +248,7 @@ class ProjectSiteManagementController extends Controller
             'labour_identifier' => 'required|string|max:150',
             'work_category' => 'required|string|max:100',
             'days_worked' => 'required|numeric|min:0.1|max:31',
-            'daily_wage_rate' => 'required|numeric|min:0',
+            'daily_wage_rate' => 'nullable|numeric|min:0',
             'work_date' => 'required|date|before_or_equal:today',
             'building_id' => 'nullable|exists:buildings,id',
             'payment_status' => 'required|in:Pending,Paid,Partial',
@@ -240,7 +258,8 @@ class ProjectSiteManagementController extends Controller
         $validated['company_id'] = $companyId;
         $validated['project_id'] = $project->id;
         $validated['supervisor_user_id'] = auth()->id();
-        $validated['total_wages'] = (float) $validated['days_worked'] * (float) $validated['daily_wage_rate'];
+        $validated['daily_wage_rate'] = (float) ($validated['daily_wage_rate'] ?? 0);
+        $validated['total_wages'] = (float) $validated['days_worked'] * $validated['daily_wage_rate'];
 
         LabourEntry::create($validated);
 
