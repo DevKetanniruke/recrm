@@ -127,6 +127,7 @@ Route::middleware(['auth'])->group(function () {
         // Site & Material Management Module Routes
         Route::get('/projects/{project}/site-management', [ProjectSiteManagementController::class, 'index'])->name('projects.site-management');
         Route::post('/projects/{project}/materials', [ProjectSiteManagementController::class, 'storeMaterial'])->name('projects.materials.store');
+        Route::post('/projects/{project}/inwards', [ProjectSiteManagementController::class, 'storeInward'])->name('projects.inwards.store');
         Route::post('/projects/{project}/material-categories', [ProjectSiteManagementController::class, 'storeMaterialCategory'])->name('projects.material-categories.store');
         Route::delete('/projects/{project}/materials/{material}', [ProjectSiteManagementController::class, 'destroyMaterial'])->name('projects.materials.destroy');
         

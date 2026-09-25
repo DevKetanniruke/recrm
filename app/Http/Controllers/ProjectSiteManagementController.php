@@ -6,6 +6,8 @@ use App\Models\Building;
 use App\Models\LabourEntry;
 use App\Models\MaterialCategory;
 use App\Models\MaterialEntry;
+use App\Models\MaterialInward;
+use App\Models\MaterialStock;
 use App\Models\Project;
 use App\Models\Vendor;
 use App\Models\VendorCategory;
@@ -159,6 +161,26 @@ class ProjectSiteManagementController extends Controller
             ->groupBy('vendor_categories.name')
             ->get();
 
+        // Live Material Stock Inventory Query
+        $materialStocks = MaterialStock::with('category')
+            ->where('company_id', $companyId)
+            ->where('project_id', $project->id)
+            ->orderBy('material_name')
+            ->get();
+
+        // Inward Stock Replenishments Query
+        $materialInwardsQuery = MaterialInward::with(['category', 'supplierVendor', 'receiver'])
+            ->where('company_id', $companyId)
+            ->where('project_id', $project->id);
+        
+        if ($startDate && $endDate) {
+            $materialInwardsQuery->whereBetween('received_date', [$startDate, $endDate]);
+        }
+        $materialInwards = (clone $materialInwardsQuery)->orderBy('received_date', 'desc')->paginate(15, ['*'], 'inw_page');
+
+        // Sweet Alerts Stock Notification Payload
+        $lowStockItems = $materialStocks->filter(fn($st) => $st->isLowStock() || $st->isOutOfStock());
+
         return view('projects.site_management.index', compact(
             'project',
             'activeTab',
@@ -169,6 +191,9 @@ class ProjectSiteManagementController extends Controller
             'materialEntries',
             'labourEntries',
             'vendorPayments',
+            'materialStocks',
+            'materialInwards',
+            'lowStockItems',
             'totalMaterialSpend',
             'totalLabourSpend',
             'totalCashPaid',
@@ -188,7 +213,7 @@ class ProjectSiteManagementController extends Controller
     }
 
     /**
-     * Store Category-wise Material Entry.
+     * Store Category-wise Material Outward / Usage Entry & Auto-Deduct Stock.
      */
     public function storeMaterial(Request $request, Project $project)
     {
@@ -215,8 +240,95 @@ class ProjectSiteManagementController extends Controller
 
         MaterialEntry::create($validated);
 
+        // Find or create matching stock balance item & auto-deduct usage
+        $stock = MaterialStock::firstOrCreate(
+            [
+                'company_id' => $companyId,
+                'project_id' => $project->id,
+                'category_id' => $validated['category_id'],
+                'material_name' => $validated['material_name'],
+            ],
+            [
+                'unit_of_measure' => $validated['unit_of_measure'],
+                'current_stock_qty' => 0,
+                'min_threshold_qty' => 10.000,
+                'unit_cost' => $validated['unit_cost'],
+            ]
+        );
+
+        $newQty = max(0, (float) $stock->current_stock_qty - (float) $validated['quantity']);
+        $stock->update(['current_stock_qty' => $newQty]);
+
+        $alertMsg = 'Material usage entry recorded successfully.';
+        if ($stock->isOutOfStock()) {
+            $alertMsg .= " ⚠️ Alert: {$stock->material_name} is now OUT OF STOCK!";
+        } elseif ($stock->isLowStock()) {
+            $alertMsg .= " ⚠️ Warning: {$stock->material_name} is below safety threshold ({$stock->current_stock_qty} {$stock->unit_of_measure} remaining).";
+        }
+
         return redirect()->route('projects.site-management', [$project->id, 'tab' => 'materials'])
-            ->with('success', 'Material entry recorded successfully.');
+            ->with('success', $alertMsg);
+    }
+
+    /**
+     * Store Daily Inward Material Replenishment & Auto-Increment Stock.
+     */
+    public function storeInward(Request $request, Project $project)
+    {
+        $companyId = auth()->user()->company_id;
+
+        $validated = $request->validate([
+            'category_id' => 'required|exists:material_categories,id',
+            'material_name' => 'required|string|max:150',
+            'qty_received' => 'required|numeric|min:0.001',
+            'unit_of_measure' => 'required|string|max:30',
+            'unit_cost' => 'nullable|numeric|min:0',
+            'vendor_id' => 'nullable|exists:vendors,id',
+            'invoice_number' => 'nullable|string|max:100',
+            'gate_pass_number' => 'nullable|string|max:100',
+            'received_date' => 'required|date|before_or_equal:today',
+            'min_threshold_qty' => 'nullable|numeric|min:0',
+            'notes' => 'nullable|string',
+        ]);
+
+        $validated['company_id'] = $companyId;
+        $validated['project_id'] = $project->id;
+        $validated['created_by'] = auth()->id();
+        $validated['unit_cost'] = (float) ($validated['unit_cost'] ?? 0);
+        $validated['total_cost'] = (float) $validated['qty_received'] * $validated['unit_cost'];
+
+        // Find or create matching MaterialStock
+        $stock = MaterialStock::firstOrCreate(
+            [
+                'company_id' => $companyId,
+                'project_id' => $project->id,
+                'category_id' => $validated['category_id'],
+                'material_name' => $validated['material_name'],
+            ],
+            [
+                'unit_of_measure' => $validated['unit_of_measure'],
+                'current_stock_qty' => 0,
+                'min_threshold_qty' => (float) ($validated['min_threshold_qty'] ?? 10.000),
+                'unit_cost' => $validated['unit_cost'],
+            ]
+        );
+
+        $validated['stock_id'] = $stock->id;
+
+        // Create Inward Record
+        MaterialInward::create($validated);
+
+        // Auto-increment Stock Balance
+        $newQty = (float) $stock->current_stock_qty + (float) $validated['qty_received'];
+        $stock->update([
+            'current_stock_qty' => $newQty,
+            'unit_cost' => $validated['unit_cost'] > 0 ? $validated['unit_cost'] : $stock->unit_cost,
+            'last_replenished_at' => now(),
+            'min_threshold_qty' => isset($validated['min_threshold_qty']) && $validated['min_threshold_qty'] > 0 ? (float) $validated['min_threshold_qty'] : $stock->min_threshold_qty,
+        ]);
+
+        return redirect()->route('projects.site-management', [$project->id, 'tab' => 'stocks'])
+            ->with('success', "Inward stock of {$validated['qty_received']} {$validated['unit_of_measure']} {$validated['material_name']} received and added to live inventory!");
     }
 
     /**

@@ -48,14 +48,8 @@
                     <a class="nav-link {{ request()->routeIs('offers.*') ? 'active' : '' }}" href="{{ route('offers.index') }}">
                         <i class="bi bi-tag-fill"></i> Offers & Negotiation
                     </a>
-                    <a class="nav-link {{ request()->routeIs('calendar.*') ? 'active' : '' }}" href="{{ route('calendar.index') }}">
-                        <i class="bi bi-calendar3"></i> Unified Sales Calendar
-                    </a>
                     <a class="nav-link {{ request()->routeIs('followups.*') ? 'active' : '' }}" href="{{ route('followups.index') }}">
                         <i class="bi bi-calendar-check-fill"></i> Follow-ups Schedule
-                    </a>
-                    <a class="nav-link {{ request()->routeIs('leads.duplicates') ? 'active' : '' }}" href="{{ route('leads.duplicates') }}">
-                        <i class="bi bi-intersect"></i> Duplicate Checker
                     </a>
                     <a class="nav-link {{ request()->routeIs('leads.import.*') ? 'active' : '' }}" href="{{ route('leads.import.form') }}">
                         <i class="bi bi-file-earmark-arrow-up-fill"></i> CSV Import / Export

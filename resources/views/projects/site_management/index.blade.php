@@ -11,8 +11,11 @@
         <p class="text-secondary small mb-0">Project: <strong class="text-dark">{{ $project->project_name }}</strong> | Record daily material entries, labour wages, and vendor cash/cheque payments.</p>
     </div>
     <div class="d-flex align-items-center gap-2 flex-wrap">
+        <button class="btn btn-info text-white btn-sm px-3 shadow-sm rounded-pill" data-bs-toggle="modal" data-bs-target="#addInwardModal">
+            <i class="bi bi-truck me-1"></i> + Receive Inward Stock
+        </button>
         <button class="btn btn-primary btn-sm px-3 shadow-sm rounded-pill" data-bs-toggle="modal" data-bs-target="#addMaterialModal">
-            <i class="bi bi-box-seam me-1"></i> + Material Entry
+            <i class="bi bi-box-seam me-1"></i> - Log Usage (Outward)
         </button>
         <button class="btn btn-success btn-sm px-3 shadow-sm rounded-pill" data-bs-toggle="modal" data-bs-target="#addLabourModal">
             <i class="bi bi-person-workspace me-1"></i> + Labour Entry
@@ -25,7 +28,7 @@
                 <i class="bi bi-download me-1"></i> Export Reports
             </button>
             <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                <li><a class="dropdown-item small" href="{{ route('projects.site-management.export-excel', [$project->id, 'export_type' => 'materials']) }}"><i class="bi bi-file-earmark-spreadsheet text-success me-2"></i> Export Materials (CSV)</a></li>
+                <li><a class="dropdown-item small" href="{{ route('projects.site-management.export-excel', [$project->id, 'export_type' => 'materials']) }}"><i class="bi bi-file-earmark-spreadsheet text-success me-2"></i> Export Usage Logs (CSV)</a></li>
                 <li><a class="dropdown-item small" href="{{ route('projects.site-management.export-excel', [$project->id, 'export_type' => 'labour']) }}"><i class="bi bi-file-earmark-spreadsheet text-info me-2"></i> Export Labour (CSV)</a></li>
                 <li><a class="dropdown-item small" href="{{ route('projects.site-management.export-excel', [$project->id, 'export_type' => 'vendors']) }}"><i class="bi bi-file-earmark-spreadsheet text-warning me-2"></i> Export Vendor Payments (CSV)</a></li>
                 <li><hr class="dropdown-divider"></li>
@@ -60,8 +63,8 @@
 
     <div class="col-xl-2 col-md-4 col-6">
         <div class="stat-card border-start border-4 border-warning p-3 bg-white rounded-3 shadow-sm">
-            <small class="text-muted fw-semibold text-uppercase" style="font-size: 0.65rem;">Cheque Paid (Vendors)</small>
-            <h4 class="mb-0 mt-1 brand-font text-warning fw-bold">₹{{ number_format($totalChequePaid, 2) }}</h4>
+            <small class="text-muted fw-semibold text-uppercase" style="font-size: 0.65rem;">Stock Items / Low Alerts</small>
+            <h4 class="mb-0 mt-1 brand-font text-warning fw-bold">{{ $materialStocks->count() }} <span class="fs-6 text-danger fw-normal">({{ $lowStockItems->count() }} Low)</span></h4>
         </div>
     </div>
 
@@ -134,8 +137,18 @@
 <!-- Main Sub-Navigation Tabs -->
 <ul class="nav nav-tabs nav-tabs-bordered mb-4" id="siteTabs">
     <li class="nav-item">
+        <a class="nav-link {{ $activeTab === 'stocks' ? 'active' : '' }}" href="{{ route('projects.site-management', [$project->id, 'tab' => 'stocks']) }}">
+            <i class="bi bi-boxes text-info me-1"></i> Live Stock Inventory ({{ $materialStocks->count() }})
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {{ $activeTab === 'inwards' ? 'active' : '' }}" href="{{ route('projects.site-management', [$project->id, 'tab' => 'inwards']) }}">
+            <i class="bi bi-truck text-primary me-1"></i> Inward Deliveries ({{ $materialInwards->total() }})
+        </a>
+    </li>
+    <li class="nav-item">
         <a class="nav-link {{ $activeTab === 'summary' || $activeTab === 'materials' ? 'active' : '' }}" href="{{ route('projects.site-management', [$project->id, 'tab' => 'materials']) }}">
-            <i class="bi bi-box-seam me-1"></i> Material Entries ({{ $materialEntries->total() }})
+            <i class="bi bi-box-seam me-1"></i> Outward Usage Logs ({{ $materialEntries->total() }})
         </a>
     </li>
     <li class="nav-item">
@@ -156,7 +169,132 @@
 </ul>
 
 <!-- Tab Content -->
-@if($activeTab === 'summary' || $activeTab === 'materials')
+@if($activeTab === 'stocks')
+    <!-- Live Stock Inventory Ledger Table -->
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-header bg-white border-0 py-3 d-flex align-items-center justify-content-between">
+            <div>
+                <h6 class="mb-0 brand-font fw-bold"><i class="bi bi-boxes text-info me-2"></i> Live Material Stock Inventory Ledger</h6>
+                <small class="text-secondary">Real-time safety threshold monitoring and stock balance control</small>
+            </div>
+            <button class="btn btn-sm btn-info text-white rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#addInwardModal">+ Receive Inward Stock</button>
+        </div>
+        <div class="table-responsive">
+            <table class="table align-middle mb-0" style="font-size:0.88rem;">
+                <thead class="table-light">
+                    <tr>
+                        <th>Material Name</th>
+                        <th>Category</th>
+                        <th>Current Available Stock</th>
+                        <th>Safety Threshold</th>
+                        <th>Stock Health Status</th>
+                        <th>Last Replenished</th>
+                        <th class="text-end">Quick Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($materialStocks as $st)
+                        @php
+                            $statusInfo = $st->stock_status;
+                        @endphp
+                        <tr>
+                            <td class="fw-bold text-dark fs-6">{{ $st->material_name }}</td>
+                            <td><span class="badge bg-primary bg-opacity-10 text-primary border">{{ $st->category->name ?? 'General' }}</span></td>
+                            <td>
+                                <span class="fs-5 fw-bold {{ $st->isOutOfStock() ? 'text-danger' : ($st->isLowStock() ? 'text-warning' : 'text-success') }}">
+                                    {{ number_format($st->current_stock_qty, 2) }}
+                                </span>
+                                <small class="text-muted fw-normal">{{ $st->unit_of_measure }}</small>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-muted border font-monospace">{{ number_format($st->min_threshold_qty, 2) }} {{ $st->unit_of_measure }}</span>
+                            </td>
+                            <td>
+                                <span class="badge {{ $statusInfo['class'] }} mb-1"><i class="bi bi-circle-fill me-1" style="font-size: 0.55rem;"></i> {{ $statusInfo['label'] }}</span>
+                                <div class="progress mt-1" style="height: 6px; width: 120px;">
+                                    <div class="progress-bar bg-{{ $statusInfo['pill'] }}" role="progressbar" style="width: {{ $statusInfo['percentage'] }}%"></div>
+                                </div>
+                            </td>
+                            <td>
+                                <small class="text-secondary">{{ $st->last_replenished_at ? $st->last_replenished_at->format('d M Y, h:i A') : 'No inward recorded yet' }}</small>
+                            </td>
+                            <td class="text-end">
+                                <button class="btn btn-xs btn-outline-info me-1" data-bs-toggle="modal" data-bs-target="#addInwardModal" onclick="document.querySelector('#addInwardModal input[name=material_name]').value='{{ $st->material_name }}';">
+                                    + Inward
+                                </button>
+                                <button class="btn btn-xs btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addMaterialModal" onclick="document.querySelector('#addMaterialModal input[name=material_name]').value='{{ $st->material_name }}';">
+                                    - Usage
+                                </button>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-muted">No stock inventory recorded yet. Click <strong>+ Receive Inward Stock</strong> to add inventory.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+@elseif($activeTab === 'inwards')
+    <!-- Inward Deliveries Table -->
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-header bg-white border-0 py-3 d-flex align-items-center justify-content-between">
+            <h6 class="mb-0 brand-font fw-bold"><i class="bi bi-truck text-primary me-2"></i> Material Inward Replenishment Logs</h6>
+            <button class="btn btn-sm btn-info text-white rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#addInwardModal">+ Receive Stock Inward</button>
+        </div>
+        <div class="table-responsive">
+            <table class="table align-middle mb-0" style="font-size:0.88rem;">
+                <thead class="table-light">
+                    <tr>
+                        <th>Received Date</th>
+                        <th>Category</th>
+                        <th>Material Name</th>
+                        <th>Qty Received</th>
+                        <th>Unit Rate (₹)</th>
+                        <th>Total Cost (₹)</th>
+                        <th>Supplier Vendor</th>
+                        <th>Invoice / Gate Pass</th>
+                        <th>Receiver</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($materialInwards as $inw)
+                        <tr>
+                            <td>{{ $inw->received_date->format('d M Y') }}</td>
+                            <td><span class="badge bg-primary bg-opacity-10 text-primary border">{{ $inw->category->name ?? 'General' }}</span></td>
+                            <td class="fw-bold text-dark">{{ $inw->material_name }}</td>
+                            <td><span class="badge bg-success bg-opacity-10 text-success fw-bold border">+{{ number_format($inw->qty_received, 2) }} {{ $inw->unit_of_measure }}</span></td>
+                            <td>₹{{ number_format($inw->unit_cost, 2) }}</td>
+                            <td class="fw-bold text-dark">₹{{ number_format($inw->total_cost, 2) }}</td>
+                            <td>{{ $inw->supplierVendor->vendor_name ?? 'Direct Purchase' }}</td>
+                            <td>
+                                @if($inw->invoice_number)
+                                    <span class="badge bg-light text-dark border font-monospace">Inv: {{ $inw->invoice_number }}</span>
+                                @endif
+                                @if($inw->gate_pass_number)
+                                    <span class="badge bg-light text-muted border font-monospace">GP: {{ $inw->gate_pass_number }}</span>
+                                @endif
+                            </td>
+                            <td><small class="text-secondary">{{ $inw->receiver->name ?? 'System' }}</small></td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="9" class="text-center py-4 text-muted">No inward shipments recorded yet.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+        @if($materialInwards->hasPages())
+            <div class="card-footer bg-white border-0 py-3">
+                {{ $materialInwards->appends(request()->query())->links() }}
+            </div>
+        @endif
+    </div>
+
+@elseif($activeTab === 'summary' || $activeTab === 'materials')
     <!-- Material Entries Table -->
     <div class="card border-0 shadow-sm rounded-4">
         <div class="card-header bg-white border-0 py-3 d-flex align-items-center justify-content-between">
@@ -661,4 +799,133 @@
         </form>
     </div>
 </div>
+
+<!-- MODAL 6: Receive Inward Stock Replenishment -->
+<div class="modal fade" id="addInwardModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <form action="{{ route('projects.inwards.store', $project->id) }}" method="POST" class="modal-content">
+            @csrf
+            <div class="modal-header bg-info bg-opacity-10">
+                <h5 class="modal-title brand-font fw-bold text-dark"><i class="bi bi-truck me-2 text-info"></i> Receive Inward Stock Shipment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body row g-3">
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold">Material Category <span class="text-danger">*</span></label>
+                    <select name="category_id" class="form-select" required>
+                        <option value="">Select Category</option>
+                        @foreach($materialCategories as $cat)
+                            <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold">Material Item Name <span class="text-danger">*</span></label>
+                    <input type="text" name="material_name" placeholder="e.g. Ultratech PPC Cement / 12mm TMT Steel" class="form-control" required>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold">Quantity Received <span class="text-danger">*</span></label>
+                    <input type="number" step="0.001" name="qty_received" placeholder="e.g. 500" class="form-control" required>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold">Unit of Measure <span class="text-danger">*</span></label>
+                    <select name="unit_of_measure" class="form-select" required>
+                        <option value="Bags">Bags</option>
+                        <option value="Tons">Tons</option>
+                        <option value="Brass">Brass</option>
+                        <option value="Sq.Ft">Sq.Ft</option>
+                        <option value="Pieces">Pieces</option>
+                        <option value="Kgs">Kgs</option>
+                        <option value="Liters">Liters</option>
+                    </select>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold">Safety Min Threshold Qty</label>
+                    <input type="number" step="0.001" name="min_threshold_qty" placeholder="e.g. 150 (Alert level)" class="form-control" value="10">
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold">Unit Cost (₹)</label>
+                    <input type="number" step="0.01" name="unit_cost" placeholder="e.g. 360.00" class="form-control">
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold">Received Date <span class="text-danger">*</span></label>
+                    <input type="date" name="received_date" value="{{ date('Y-m-d') }}" class="form-control" required>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold">Supplier Vendor</label>
+                    <select name="vendor_id" class="form-select">
+                        <option value="">Select Vendor Supplier</option>
+                        @foreach($vendors as $v)
+                            <option value="{{ $v->id }}">{{ $v->vendor_name }} ({{ $v->category->name ?? '' }})</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold">Supplier Invoice Number</label>
+                    <input type="text" name="invoice_number" placeholder="e.g. INV-99120" class="form-control">
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold">Gate Pass Number</label>
+                    <input type="text" name="gate_pass_number" placeholder="e.g. GP-8812" class="form-control">
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label small fw-bold">Notes / Delivery Condition</label>
+                    <textarea name="notes" rows="2" class="form-control" placeholder="Optional delivery notes..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-info text-white px-4">Receive & Update Stock</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- SweetAlert2 Real-time Stock Alerts Engine -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+@if(isset($lowStockItems) && $lowStockItems->count() > 0)
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Trigger non-intrusive sweet toast for low/out of stock items
+        const lowCount = {{ $lowStockItems->count() }};
+        const itemNames = {!! json_encode($lowStockItems->take(3)->pluck('material_name')->toArray()) !!}.join(', ');
+        
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: true,
+            confirmButtonText: '📦 View Stock Ledger',
+            confirmButtonColor: '#0ea5e9',
+            showCancelButton: true,
+            cancelButtonText: 'Snooze 24h',
+            timer: 10000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer)
+                toast.addEventListener('mouseleave', Swal.resumeTimer)
+            }
+        });
+
+        Toast.fire({
+            icon: 'warning',
+            title: `⚠️ Stock Alert (${lowCount} Item${lowCount > 1 ? 's' : ''})`,
+            html: `Low/Out-of-stock detected: <strong>${itemNames}</strong>`
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = "{{ route('projects.site-management', [$project->id, 'tab' => 'stocks']) }}";
+            }
+        });
+    });
+</script>
+@endif
 @endsection
