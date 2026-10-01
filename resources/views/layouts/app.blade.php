@@ -66,6 +66,9 @@
                     <a class="nav-link {{ request()->routeIs('projects.*') ? 'active' : '' }}" href="{{ route('projects.index') }}">
                         <i class="bi bi-buildings-fill"></i> Projects Portal
                     </a>
+                    <a class="nav-link {{ request()->routeIs('vendors.*') ? 'active' : '' }}" href="{{ route('vendors.index') }}">
+                        <i class="bi bi-truck-front-fill"></i> Vendor Directory & Categories
+                    </a>
                 @endif
 
                 @if(auth()->user()->hasPermissionTo('inventory.view'))

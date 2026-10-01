@@ -44,6 +44,7 @@ use App\Http\Controllers\Api\V1\LeadApiController;
 use App\Http\Controllers\Api\V1\ProjectApiController;
 use App\Http\Controllers\UnitTypeController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\VendorController;
 use Illuminate\Support\Facades\Route;
 
 // Guest Authentication Routes with Rate Limiting Protection
@@ -140,6 +141,15 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('/projects/{project}/site-management/export-excel', [ProjectSiteManagementController::class, 'exportExcel'])->name('projects.site-management.export-excel');
         Route::get('/projects/{project}/site-management/export-pdf', [ProjectSiteManagementController::class, 'exportPdf'])->name('projects.site-management.export-pdf');
+
+        // Central Vendors & Categories Directory Routes
+        Route::get('/vendors', [VendorController::class, 'index'])->name('vendors.index');
+        Route::post('/vendors', [VendorController::class, 'store'])->name('vendors.store');
+        Route::get('/vendors/{vendor}', [VendorController::class, 'show'])->name('vendors.show');
+        Route::put('/vendors/{vendor}', [VendorController::class, 'update'])->name('vendors.update');
+        Route::delete('/vendors/{vendor}', [VendorController::class, 'destroy'])->name('vendors.destroy');
+        Route::post('/vendor-categories', [VendorController::class, 'storeCategory'])->name('vendor-categories.store');
+        Route::delete('/vendor-categories/{category}', [VendorController::class, 'destroyCategory'])->name('vendor-categories.destroy');
     });
 
     Route::middleware(['permission:inventory.view'])->group(function () {
